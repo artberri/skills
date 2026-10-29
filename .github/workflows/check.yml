@@ -1,0 +1,20 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shfmt
+        run: sudo apt-get update && sudo apt-get install -y shfmt
+      - name: ShellCheck
+        run: shellcheck scripts/*.sh
+      - name: shfmt
+        run: shfmt -d scripts/
+      - name: Validate skills
+        run: scripts/check.sh
