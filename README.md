@@ -9,15 +9,17 @@ There are two kinds:
 
 [Drafts](./skills/drafts/README.md) are skills in progress. They never get installed.
 
+Some skills hand work to **agents** (subagents with their own prompt, tools and model). Agents are split the same way: [portable](./agents/portable/README.md), [templates](./agents/templates/README.md) and [drafts](./agents/drafts/README.md). A skill lists the agents it uses, and adding a template brings in its template agents too.
+
 ## Using a template in a project
 
 ```sh
 scripts/add-template.sh <skill> path/to/project
 ```
 
-That copies the skill into `path/to/project/.claude/skills/<skill>`. Then, from inside the project, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). The agent fills in every `CUSTOMIZE` marker from what it finds in the project, and asks you about anything it can't work out.
+That copies the skill into `path/to/project/.claude/skills/<skill>`, and any template agents it uses into `path/to/project/.claude/agents/`. Then, from inside the project, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). The agent fills in every `CUSTOMIZE` marker from what it finds in the project, and asks you about anything it can't work out.
 
-## Installing the portable skills
+## Installing the portable skills and agents
 
 Not decided yet.
 
@@ -28,9 +30,14 @@ skills/
 	portable/<skill>/SKILL.md    use as-is
 	templates/<skill>/SKILL.md   copy into a project, then adapt
 	drafts/<skill>/SKILL.md      work in progress
+agents/
+	portable/<agent>.md          same buckets, one file per agent
+	templates/<agent>.md
+	drafts/<agent>.md
 scripts/
-	add-template.sh              copy a template into a project
-	check.sh                     validate every skill and README
+	add-template.sh              copy a template (and its agents) into a project
+	check.sh                     validate every skill, agent and README
+	lib.sh                       helpers shared by the scripts
 ```
 
 Each skill is a folder with a `SKILL.md` and any reference files it loads on demand.

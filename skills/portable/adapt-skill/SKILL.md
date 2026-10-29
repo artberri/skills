@@ -1,6 +1,6 @@
 ---
 name: adapt-skill
-description: Adapt a skill template that was copied into this project by filling in its CUSTOMIZE markers from the project's code, config and conventions. Use when the user asks to adapt or customise a skill, or when a skill in this project still contains `<!-- CUSTOMIZE:` markers.
+description: Adapt a skill template that was copied into this project, and the template agents it uses, by filling in their CUSTOMIZE markers from the project's code, config and conventions. Use when the user asks to adapt or customise a skill, or when a skill in this project still contains `<!-- CUSTOMIZE:` markers.
 argument-hint: <skill-name>
 ---
 
@@ -11,6 +11,8 @@ A template is a skill with `<!-- CUSTOMIZE: ... -->` HTML comments on its projec
 ## 1. Find the skill
 
 Look for the skill named in the arguments in `.claude/skills/<name>/`, then `.agents/skills/<name>/`. If no name was given, find the skills in those folders that still contain `<!-- CUSTOMIZE:` and ask which one to adapt. Include every file in the skill's folder, not only `SKILL.md`.
+
+If the skill's frontmatter lists agents under `metadata.agents`, include each one found at `.claude/agents/<agent>.md` that still contains `<!-- CUSTOMIZE:`. An agent without markers was already adapted (another skill may share it); leave it alone.
 
 ## 2. Investigate
 
@@ -26,8 +28,8 @@ Show the user one list: each marker, the value you propose, and its source. Ask 
 - Delete the marker comment.
 - If a marker turns out not to apply to this project, remove the part it governs, and tidy anything that referred to it.
 - Leave the frontmatter `name` as it is. Change `description` only if it no longer matches what the adapted skill does.
-- Edit only files inside the skill's folder.
+- Edit only files inside the skill's folder and the agent files from step 1.
 
 ## 5. Verify
 
-Search the skill's folder for `CUSTOMIZE`. Done when there are no matches. Then summarise what you filled in for each marker.
+Search the skill's folder and those agent files for `CUSTOMIZE`. Done when there are no matches. Then summarise what you filled in for each marker.

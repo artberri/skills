@@ -17,6 +17,23 @@ When you are unsure which bucket a skill belongs in, ask: would it be wrong in s
 - Keep `SKILL.md` short. Move long reference material into sibling files that `SKILL.md` links to and loads only when needed.
 - Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.`
 
+## Agents
+
+`agents/` holds Claude Code subagent definitions that skills start. It uses the same three buckets as `skills/`, with one file per agent: `agents/<bucket>/<name>.md`.
+
+- Frontmatter has `name` (matching the file name) and `description`, plus `tools` and `model` when the agent should be limited. The body is the agent's system prompt.
+- Agent names are unique across the agent buckets, and each agent is listed in its bucket's `README.md` as `- **[name](./name.md)**: one-line description.`
+- A template agent has `CUSTOMIZE` markers, the same as a template skill. A portable agent has none.
+- A skill that starts an agent names it in its instructions and lists it in its frontmatter:
+
+  ```yaml
+  metadata:
+    agents: reviewer test-runner
+  ```
+
+  Names are space-separated. `scripts/check.sh` verifies each one exists and fits: a portable skill can only use portable agents, and a template skill can use portable or template agents. `scripts/add-template.sh` copies the template agents into the project together with the skill.
+- Tell the agent to start with a fresh context, and give it everything it needs in the prompt: it does not see the conversation.
+
 ## Writing skills with skill-creator
 
 When creating a skill or substantially revising one, use the skill-creator skill if one is available (the name depends on the harness). Its eval loop and description tuning are the main reasons to use it, especially for model-invoked skills.
@@ -46,7 +63,7 @@ Run `npm test`. For one file: `npx vitest run path/to/file.test.ts`.
 
 ## Checks
 
-Run `scripts/check.sh` after adding, renaming or moving a skill. It validates frontmatter, marker rules, name uniqueness and the bucket READMEs. CI runs it, plus ShellCheck and shfmt on `scripts/`.
+Run `scripts/check.sh` after adding, renaming or moving a skill or agent. It validates frontmatter, marker rules, name uniqueness, the agents each skill uses, and the bucket READMEs. CI runs it, plus ShellCheck and shfmt on `scripts/`.
 
 ## Style
 
