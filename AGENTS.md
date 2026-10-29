@@ -63,7 +63,7 @@ Run `npm test`. For one file: `npx vitest run path/to/file.test.ts`.
 
 ## Checks
 
-Run `scripts/check.sh` after adding, renaming or moving a skill or agent. It validates frontmatter, marker rules, name uniqueness, the agents each skill uses, and the bucket READMEs. CI runs it, plus ShellCheck and shfmt on `scripts/`.
+Run `scripts/check.sh` after adding, renaming or moving a skill or agent. It validates frontmatter, marker rules, name uniqueness, the agents each skill uses, and the bucket READMEs. CI runs it, plus ShellCheck and shfmt on every shell script, including those inside skill folders.
 
 ## Style
 
