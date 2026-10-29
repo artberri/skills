@@ -4,4 +4,5 @@ Skills to install into a project and adapt there. Each one has `CUSTOMIZE` marke
 
 To install one, or refresh it later, run `/adapt-skill <skill>` inside the project. Without Claude Code, copy it with `scripts/add-template.sh <skill> path/to/project` and fill in the markers by hand.
 
+- **[create-plan](./create-plan/SKILL.md)**: Plan a feature, refactor or fix as vertical-slice phases in the project's plans folder: a plan folder per task, or a board with one plan per ticket. Revises plans with completed phases locked.
 - **[ship](./ship/SKILL.md)**: Take finished work to shipped in one move: commit, rebase, push and, for projects that ship through pull requests, open the PR and run the first review round.
