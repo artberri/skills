@@ -17,7 +17,7 @@ Runs a review of the PR on the current branch and posts it as a single GitHub re
 
 It also keeps a whole-PR verdict in the PR body, between `<!-- ocr_comment -->` and `<!-- /ocr_comment -->`: the PR's confidence score, its summary and every open OCR finding, rewritten on each run. An incremental review scores only its new commits, so this block is where the PR's current score lives.
 
-The optional hook in this skill's `hooks/` folder (see its [README](./hooks/README.md)) asks Claude to run this after `gh pr create`, and after a `git push` to a PR this skill has already reviewed, without asking the user first. Skip it when the PR, or the new commits, are docs-only or a very small, obvious change (a typo, a lint fix, a one-line correction), and say so.
+The optional hook in this skill's `hooks/` folder (see its [README](./hooks/README.md); off unless turned on) asks Claude to run this after `gh pr create`, and after a `git push` to a PR this skill has already reviewed, without asking the user first. Skip it when the PR, or the new commits, are docs-only or a very small, obvious change (a typo, a lint fix, a one-line correction), and say so.
 
 Paths like `scripts/ocr-review.ts` are relative to this skill's folder. Run every command from the repository root, and call the script by its full path: `node <skill folder>/scripts/ocr-review.ts`.
 
@@ -48,7 +48,7 @@ git rev-parse HEAD
 
 ## Step 2: Review in a fresh subagent
 
-The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent (Agent tool, `subagent_type: "ocr-reviewer"`) with a fresh context. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
+The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent with the Agent tool, with a fresh context. Use the name your Agent tool lists for it: `ocr-reviewer`, or with a plugin prefix such as `artberri:ocr-reviewer` when it comes from a plugin. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
 
 ```text
 Review PR <number>: from <from>, to <to>, base <baseRefName>, mode <full | incremental>, in the repository at <repo root>.

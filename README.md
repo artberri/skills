@@ -21,11 +21,24 @@ That copies the skill into `path/to/project/.claude/skills/<skill>`, and any tem
 
 ## Installing the portable skills and agents
 
-Not decided yet.
+The repo is a Claude Code plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it.
+
+To load it from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
+
+```json
+{
+	"env": {
+		"CLAUDE_CODE_PLUGIN_DIRS": "/path/to/skills"
+	}
+}
+```
+
+Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri:commit`. Agents always carry the prefix: `artberri:ocr-reviewer`.
 
 ## Layout
 
 ```
+.claude-plugin/plugin.json     the artberri plugin: portable skills and agents
 skills/
 	portable/<skill>/SKILL.md    use as-is
 	templates/<skill>/SKILL.md   copy into a project, then adapt

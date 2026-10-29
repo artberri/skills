@@ -33,6 +33,16 @@ When you are unsure which bucket a skill belongs in, ask: would it be wrong in s
 
   Names are space-separated. `scripts/check.sh` verifies each one exists and fits: a portable skill can only use portable agents, and a template skill can use portable or template agents. `scripts/add-template.sh` copies the template agents into the project together with the skill.
 - Tell the agent to start with a fresh context, and give it everything it needs in the prompt: it does not see the conversation.
+- When a plugin loads the agent, its name carries the plugin prefix (`artberri:ocr-reviewer`). Skills tell the model to use the name its Agent tool lists, never a hard-coded `subagent_type`.
+
+## The plugin
+
+`.claude-plugin/plugin.json` makes the repo the `artberri` Claude Code plugin, which ships the portable skills and agents.
+
+- Skills come in as a folder (`./skills/portable/`), so a new portable skill needs no manifest change.
+- Agents must be listed one by one: add every portable agent to `agents`, and nothing else. `scripts/check.sh` enforces this, and rejects `.md` files at the top of `agents/`, which Claude Code would load on its own.
+- Hooks a skill ships are registered in the manifest only if they default to off, with an environment variable to turn them on, because they run for everyone who installs the plugin.
+- After changing the manifest, run `claude plugin validate .`. Warnings about the bucket `README.md` files lacking frontmatter are expected: the validator reads every `.md` under `agents/`, while Claude Code only loads what the manifest lists.
 
 ## Writing skills with skill-creator
 

@@ -6,7 +6,17 @@ It needs `jq`, `gh` and, for pushes, `node`. Without them it does nothing.
 
 ## Turning it on
 
-Add it to a `settings.json`: the project's `.claude/settings.json` for one repo, or your user settings for every repo. Point `command` at the script inside the installed skill folder, for example:
+**From the `artberri` plugin:** the plugin registers the hook, but it stays off until `OCR_REVIEW_OFFER` is `1`. Set it in the `env` block of a `settings.json`: the project's `.claude/settings.json` for one repo, or your user settings for every repo.
+
+```json
+{
+	"env": {
+		"OCR_REVIEW_OFFER": "1"
+	}
+}
+```
+
+**From a copy of the skill:** add the hook yourself, pointing `command` at the script inside the installed skill folder. It runs unless `OCR_REVIEW_OFFER` is `0`.
 
 ```json
 {
@@ -25,5 +35,3 @@ Add it to a `settings.json`: the project's `.claude/settings.json` for one repo,
 	}
 }
 ```
-
-Set `OCR_REVIEW_OFFER=0` in the environment to turn it off without editing settings.

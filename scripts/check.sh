@@ -114,6 +114,27 @@ for bucket in portable templates drafts; do
 	done
 done
 
+# The plugin loads skills/portable/ as a folder, but its agents one by one,
+# and Claude Code also loads any .md file at the top of agents/ on its own.
+manifest=.claude-plugin/plugin.json
+for file in agents/*.md; do
+	[ -f "$file" ] && fail "$file: agents go in a bucket folder; the plugin would load this one"
+done
+if ! command -v jq >/dev/null; then
+	fail "jq is needed to check $manifest"
+elif ! jq -e . "$manifest" >/dev/null 2>&1; then
+	fail "$manifest is missing or not valid JSON"
+else
+	[ "$(jq -c .skills "$manifest")" = '["./skills/portable/"]' ] ||
+		fail "$manifest: skills must be [\"./skills/portable/\"]"
+	expected="$(for file in agents/portable/*.md; do
+		[ "$(basename "$file")" = README.md ] || echo "./$file"
+	done | sort)"
+	listed="$(jq -r '.agents // [] | .[]' "$manifest" | sort)"
+	[ "$listed" = "$expected" ] ||
+		fail "$manifest: agents must list exactly the portable agents:$(printf '\n%s' "$expected")"
+fi
+
 if [ "$errors" -gt 0 ]; then
 	echo "$errors problem(s) found" >&2
 	exit 1
