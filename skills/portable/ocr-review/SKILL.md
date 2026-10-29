@@ -70,4 +70,4 @@ It checks that the PR head still matches `headSha` and that the scores are integ
 
 ## Step 4: Report
 
-Give the user the review URL, the PR's confidence score (and, on an incremental review, the new commits' score) and a one-line count by severity. Do not start fixing findings unprompted: the user reads them first. A finding that turns out to be a settled convention belongs in the project's known-non-issues file, if `.opencodereview/background.md` names one, so the next review skips it; suggest adding it.
+Give the user the review URL, the PR's confidence score (and, on an incremental review, the new commits' score) and a one-line count by severity. If the repo has no `.opencodereview/` folder, add one line: the review used OCR's built-in rules (test files excluded, no project conventions), and `/setup-ocr` tailors it to this repo. Do not start fixing findings unprompted: the user reads them first. A finding that turns out to be a settled convention belongs in the project's known-non-issues file, if `.opencodereview/background.md` names one, so the next review skips it; suggest adding it.
