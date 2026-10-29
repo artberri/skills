@@ -3,7 +3,7 @@
 This repo holds agent skills. Each skill is a folder under one of three buckets:
 
 - `skills/portable/`: works as-is in any project. Never contains `CUSTOMIZE` markers.
-- `skills/templates/`: copied into a project by `scripts/add-template.sh`, then adapted with the `adapt-skill` skill. Always contains at least one `CUSTOMIZE` marker.
+- `skills/templates/`: installed into a project and adapted (and later refreshed) by the `adapt-skill` skill, or copied by `scripts/add-template.sh` for agents other than Claude Code. Always contains at least one `CUSTOMIZE` marker.
 - `skills/drafts/`: work in progress. Not installed and not listed outside its own README.
 
 When you are unsure which bucket a skill belongs in, ask: would it be wrong in some project if nobody edited it? If so, it is a template.
@@ -36,7 +36,7 @@ When the user asks for a portable skill, challenge that before writing it. List 
     agents: reviewer test-runner
   ```
 
-  Names are space-separated. `scripts/check.sh` verifies each one exists and fits: a portable skill can only use portable agents, and a template skill can use portable or template agents. `scripts/add-template.sh` copies the template agents into the project together with the skill.
+  Names are space-separated. `scripts/check.sh` verifies each one exists and fits: a portable skill can only use portable agents, and a template skill can use portable or template agents. `adapt-skill` (or `scripts/add-template.sh`) installs the template agents into the project together with the skill.
 - Tell the agent to start with a fresh context, and give it everything it needs in the prompt: it does not see the conversation.
 - When a plugin loads the agent, its name carries the plugin prefix (`artberri:ocr-reviewer`). Skills tell the model to use the name its Agent tool lists, never a hard-coded `subagent_type`.
 
@@ -53,7 +53,7 @@ When the user asks for a portable skill, challenge that before writing it. List 
 
 When creating a skill or substantially revising one, use the skill-creator skill if one is available (the name depends on the harness). Its eval loop and description tuning are the main reasons to use it, especially for model-invoked skills.
 
-- Test cases go in `evals/evals.json` inside the skill folder and are committed. `scripts/add-template.sh` leaves them out when copying a template into a project.
+- Test cases go in `evals/evals.json` inside the skill folder and are committed. `adapt-skill` and `scripts/add-template.sh` leave them out when installing a template into a project.
 - Eval runs go in `<skill>-workspace/` next to the skill. These folders are gitignored and skipped by `scripts/check.sh`. Delete them when you are done.
 - For a template, run the evals against the template as it is: the example content under each marker stands in for a project.
 - Skip its packaging step (`.skill` files). Skills here are installed from the repo.
@@ -75,6 +75,10 @@ Run `npm test`. For one file: `npx vitest run path/to/file.test.ts`.
 - The comment says what to fill in and where in a project to look for it.
 - The content under it, up to the next heading or marker, is an example. It shows the shape of the answer and gets replaced.
 - `adapt-skill` rewrites that content for the project and deletes the marker. An adapted skill has no markers left.
+
+Every template carries `metadata.template-revision`, a whole number, in its frontmatter. Bump it whenever you change the template: `adapt-skill` compares it with a project's copy to offer a refresh. `scripts/check.sh` requires it.
+
+Guidance for adapting a template that the markers alone can't carry (which questions to ask and in what order, what to look for across the project) goes in a `SETUP.md` next to its `SKILL.md`, not in a separate skill. `adapt-skill` follows it; it is never copied into the project and has no markers of its own.
 
 ## Checks
 

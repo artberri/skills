@@ -95,6 +95,15 @@ for bucket in portable templates drafts; do
 		esac
 		skill_names="$skill_names $name"
 
+		# adapt-skill compares it with a project's copy to offer a refresh.
+		if [ "$bucket" = templates ] &&
+			! metadata_field "$skill_md" template-revision | grep -Eq '^[0-9]+$'; then
+			fail "$skill_md: templates need metadata.template-revision, a whole number"
+		fi
+		if [ -f "$skill_dir/SETUP.md" ] && has_markers "$skill_dir/SETUP.md"; then
+			fail "$skill_dir/SETUP.md: setup guidance must not contain CUSTOMIZE markers"
+		fi
+
 		for agent in $(skill_agents "$skill_md"); do
 			case "$agent_buckets" in
 			*" $agent:"*)

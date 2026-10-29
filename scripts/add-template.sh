@@ -43,8 +43,9 @@ fi
 
 mkdir -p "$(dirname "$dest")"
 cp -R "$src" "$dest"
-# The template's evals test the template, not the project's adapted copy.
-rm -rf "$dest/evals"
+# The template's evals test the template, not the project's adapted copy, and
+# SETUP.md only guides adapt-skill.
+rm -rf "$dest/evals" "$dest/SETUP.md"
 echo "copied $skill to $dest"
 
 for agent in $(skill_agents "$src/SKILL.md"); do

@@ -15,21 +15,27 @@ frontmatter_field() {
 	' "$1"
 }
 
-# Prints the space-separated agent names a SKILL.md lists under
-# metadata.agents, or nothing.
-skill_agents() {
-	awk '
+# Prints the value of a field under the frontmatter's metadata map, without
+# quotes, or nothing.
+metadata_field() {
+	awk -v key="$2" '
 		NR == 1 && $0 != "---" { exit }
 		NR > 1 && $0 == "---" { exit }
 		/^metadata:[ \t]*$/ { in_meta = 1; next }
 		in_meta && /^[^ \t]/ { in_meta = 0 }
-		in_meta && /^[ \t]+agents:/ {
-			sub(/^[ \t]+agents:[ \t]*/, "")
+		in_meta && $0 ~ "^[ \t]+" key ":" {
+			sub("^[ \t]+" key ":[ \t]*", "")
 			gsub(/["]/, "")
 			print
 			exit
 		}
 	' "$1"
+}
+
+# Prints the space-separated agent names a SKILL.md lists under
+# metadata.agents, or nothing.
+skill_agents() {
+	metadata_field "$1" agents
 }
 
 # Succeeds if the file or folder contains a CUSTOMIZE marker. Only a marker
