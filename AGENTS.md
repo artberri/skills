@@ -17,6 +17,16 @@ When you are unsure which bucket a skill belongs in, ask: would it be wrong in s
 - Keep `SKILL.md` short. Move long reference material into sibling files that `SKILL.md` links to and loads only when needed.
 - Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.`
 
+## Writing skills with skill-creator
+
+When creating a skill or substantially revising one, use the skill-creator skill if one is available (the name depends on the harness). Its eval loop and description tuning are the main reasons to use it, especially for model-invoked skills.
+
+- Test cases go in `evals/evals.json` inside the skill folder and are committed. `scripts/add-template.sh` leaves them out when copying a template into a project.
+- Eval runs go in `<skill>-workspace/` next to the skill. These folders are gitignored and skipped by `scripts/check.sh`. Delete them when you are done.
+- For a template, run the evals against the template as it is: the example content under each marker stands in for a project.
+- Skip its packaging step (`.skill` files). Skills here are installed from the repo.
+- Its output still has to follow the rules above and pass `scripts/check.sh`.
+
 ## CUSTOMIZE markers
 
 A template marks each project-specific part with an HTML comment placed just above the content it governs:

@@ -1,1 +1,4 @@
 .DS_Store
+
+# skill-creator's eval runs, created next to the skill being tested
+*-workspace/

@@ -39,6 +39,11 @@ for bucket in portable templates drafts; do
 		name="$(basename "$skill_dir")"
 		skill_md="$skill_dir/SKILL.md"
 
+		# skill-creator's eval runs (gitignored), not skills.
+		case "$name" in
+		*-workspace) continue ;;
+		esac
+
 		if [ ! -f "$skill_md" ]; then
 			fail "$skill_dir has no SKILL.md"
 			continue

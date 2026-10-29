@@ -39,6 +39,8 @@ fi
 
 mkdir -p "$(dirname "$dest")"
 cp -R "$src" "$dest"
+# The template's evals test the template, not the project's adapted copy.
+rm -rf "$dest/evals"
 
 echo "copied $skill to $dest"
 echo "next: run '/adapt-skill $skill' in that project"
