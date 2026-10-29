@@ -8,6 +8,11 @@ This repo holds agent skills. Each skill is a folder under one of three buckets:
 
 When you are unsure which bucket a skill belongs in, ask: would it be wrong in some project if nobody edited it? If so, it is a template.
 
+When the user asks for a portable skill, challenge that before writing it. List what the skill depends on that varies between projects: commands, paths, tools, services, conventions, review or release processes. For each, decide whether the skill can find it out reliably at run time (from `AGENTS.md` or `CLAUDE.md`, CI config, package manifests, `git log`, or a config file a `setup-*` skill writes), or would have to hard-code or guess it.
+
+- If everything can be found out, say so in one line and carry on: portable is right.
+- If something would be hard-coded or guessed, recommend a template instead. Explain why, name the parts that would become `CUSTOMIZE` markers, and wait for the user to decide. They may still choose portable; then make those parts discoverable at run time, or say plainly in the skill what it assumes.
+
 ## Skill rules
 
 - The folder name is the skill name: lowercase letters, digits and hyphens. It matches the `name` field in the `SKILL.md` frontmatter.
