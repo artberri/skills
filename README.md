@@ -23,7 +23,16 @@ That copies the skill into `path/to/project/.claude/skills/<skill>`, and any tem
 
 The repo is a Claude Code plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it.
 
-To load it from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
+Install it from the [artberri marketplace](https://github.com/artberri/claude-plugins):
+
+```sh
+claude plugin marketplace add artberri/claude-plugins
+claude plugin install artberri@artberri
+```
+
+It tracks `main`, so `claude plugin update artberri@artberri` brings in the latest skills.
+
+Or, to load it from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
 
 ```json
 {
