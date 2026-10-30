@@ -38,7 +38,7 @@ gh pr view [<number>] --json number,headRefOid,baseRefName,url
 git rev-parse HEAD
 ```
 
-- **No PR:** stop. This skill reviews PRs; for local changes use `/code-review`.
+- **No PR:** stop. This skill reviews PRs; for local changes use `adversarial-review` or `/code-review`.
 - **Local HEAD differs from `headRefOid`:** the review must match what GitHub shows, or inline comments land on the wrong lines. Tell the user to push (or pull) first. Do not push on their behalf.
 - **Full review** (the default, and after `gh pr create`): `git fetch origin <baseRefName>`, then the range is `origin/<baseRefName>..<headRefOid>`.
 - **Incremental review** (after a push, or `--incremental`): `node <skill folder>/scripts/ocr-review.ts last-reviewed-sha <number>`. If it prints a sha and `git merge-base --is-ancestor <sha> HEAD` succeeds, the range is `<sha>..<headRefOid>`. Otherwise (no previous OCR review, or a rebase rewrote the branch) fall back to a full review and say why.
