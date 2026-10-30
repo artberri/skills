@@ -19,3 +19,5 @@ Guidance for `adapt-skill` when it installs or refreshes the `create-plan` templ
 **C. Specs and designs.** Propose where they live and how to read them.
 
 **D. Contracts.** Propose the list of contract kinds for this project.
+
+**E. Edge cases for the audit.** Propose the edge cases and states the audit should check (`references/audit-guide.md`, pass 4), from what you found about the project: UI states, offline, roles and entitlements, platforms, localisation, retries and idempotency, existing data, API or event compatibility. Keep only the ones that apply.

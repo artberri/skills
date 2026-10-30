@@ -5,11 +5,12 @@ description: >-
   for `execute-plan` to carry out. Use whenever the user wants to plan, design or scope out work before writing code:
   `/create-plan`, "create a plan", "draft a plan", "plan out this task", "let's plan this", "write an implementation
   plan", or a non-trivial change they ask how to break down. Also revises an existing plan ("update this plan",
-  `/create-plan revise <folder>`). Small, single-phase or decision-free work gets a suggestion to execute directly
-  instead. For executing a plan, use `execute-plan`.
-argument-hint: "[brief path | plan folder | revise <plan folder>]"
+  `/create-plan revise <folder>`) and audits one against the code ("audit this plan", "review the plan", "poke holes
+  in this plan", `/create-plan audit <folder>`). Small, single-phase or decision-free work gets a suggestion to
+  execute directly instead. For executing a plan, use `execute-plan`.
+argument-hint: "[brief path | plan folder | revise <plan folder> | audit <plan folder>]"
 metadata:
-  template-revision: "1"
+  template-revision: "2"
 ---
 
 # Create a plan
@@ -51,6 +52,7 @@ The formats are in [references/plan-template.md](references/plan-template.md), [
 - A **brief** (`brief.md`, see the template), a **plan folder**, inline text, or nothing.
 - **Nothing:** ask for a short kebab-case name and whether the work spans several tickets, create the folder with a copy of the brief template as `brief.md`, tell the user to fill it in and come back with `/create-plan <folder>`, and stop.
 - **A plan folder that already has `plan.md` or `.plan.md` files**, or `revise <folder>`: this is a revision. Follow [references/revision-guide.md](references/revision-guide.md) instead of the steps below.
+- **`audit <folder>`**, or a request to audit, review or stress-test an existing plan: follow [references/audit-guide.md](references/audit-guide.md) instead of the steps below.
 - **An existing plan for the same task**, found while exploring: don't create a duplicate. Point the user at it and ask whether to revise it or start fresh.
 
 ## Step 1: Capture the task
@@ -140,7 +142,8 @@ Tips for good phases:
 ## Step 6: Hand off
 
 1. Show the user the path you wrote.
-2. **Don't start executing.** Suggest `/execute-plan <plan folder>` when they're ready, ideally in a fresh session or after compacting the context.
+2. **Offer an audit:** a pass over the plan that checks its scope, ordering, names, edge cases and tests against the code, before anyone executes it. Recommend it for multi-phase plans and boards. If the user accepts, follow [references/audit-guide.md](references/audit-guide.md), then come back here.
+3. **Don't start executing.** Suggest `/execute-plan <plan folder>` when they're ready, ideally in a fresh session or after compacting the context.
 
 ## Edge cases
 
