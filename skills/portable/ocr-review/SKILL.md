@@ -4,9 +4,10 @@ description: >-
   Review an open pull request locally with Open Code Review (OCR) in delegation mode and post the findings to the PR
   as a GitHub review. OCR picks the reviewable files and the per-path rules (from `.opencodereview/` when the repo has
   one); a fresh subagent with no implementation context does the review on the user's Claude Code subscription, so
-  no API cost. Use this skill when a hook asks for it after `gh pr create` or `git push`, when the user asks to
-  "review the PR with OCR", "run the OCR review" or "re-review the new commits", or invokes `/ocr-review`
-  (optionally with a PR number and `--incremental`).
+  no API cost. With no PR, or with `--local`, it reviews the commits not yet pushed and saves the findings locally
+  instead, for projects that push straight to the default branch. Use this skill when a hook or the ship skill asks
+  for it, when the user asks to "review the PR with OCR", "run the OCR review", "OCR review before I push" or
+  "re-review the new commits", or invokes `/ocr-review` (optionally with a PR number, `--local` and `--incremental`).
 metadata:
   agents: ocr-reviewer
 ---
@@ -19,6 +20,8 @@ It also keeps a whole-PR verdict in the PR body, between `<!-- ocr_comment -->` 
 
 The optional hook in this skill's `hooks/` folder (see its [README](./hooks/README.md); off unless turned on) asks Claude to run this after `gh pr create`, and after a `git push` to a PR this skill has already reviewed, without asking the user first. Skip it when the PR, or the new commits, are docs-only or a very small, obvious change (a typo, a lint fix, a one-line correction), and say so.
 
+**Local mode.** With `--local`, or when Step 1 finds no PR for the branch, follow [references/local-mode.md](./references/local-mode.md) instead of Steps 1 to 4 below: it reviews the commits not yet pushed to the default branch and saves the findings in the git dir, with no GitHub involved.
+
 Paths like `scripts/ocr-review.ts` are relative to this skill's folder. Run every command from the repository root, and call the script by its full path: `node <skill folder>/scripts/ocr-review.ts`.
 
 OCR is always run pinned, through npx, so nobody needs a global install:
@@ -29,7 +32,7 @@ npx -y @alibaba-group/open-code-review@1.12.12 delegate ...
 
 ## Step 0: Check the tools
 
-Run `node --version`. If `node` is not found, tell the user this skill needs Node.js 22.18 or later (for `npx` and for running `scripts/ocr-review.ts`) and stop. If it is older than 22.18, tell them it can't run the TypeScript script and needs upgrading, and stop. `gh` must be installed and logged in too; if `gh auth status` fails, say so and stop.
+Run `node --version`. If `node` is not found, tell the user this skill needs Node.js 22.18 or later (for `npx` and for running `scripts/ocr-review.ts`) and stop. If it is older than 22.18, tell them it can't run the TypeScript script and needs upgrading, and stop. Outside local mode, `gh` must be installed and logged in too; if `gh auth status` fails, say so and stop.
 
 ## Step 1: Resolve the PR and the range
 
@@ -38,7 +41,7 @@ gh pr view [<number>] --json number,headRefOid,baseRefName,url
 git rev-parse HEAD
 ```
 
-- **No PR:** stop. This skill reviews PRs; for local changes use `adversarial-review` or `/code-review`.
+- **No PR:** switch to local mode. For uncommitted changes, or a check against stated outcomes, `adversarial-review` or `/code-review` fit better.
 - **Local HEAD differs from `headRefOid`:** the review must match what GitHub shows, or inline comments land on the wrong lines. Tell the user to push (or pull) first. Do not push on their behalf.
 - **Full review** (the default, and after `gh pr create`): `git fetch origin <baseRefName>`, then the range is `origin/<baseRefName>..<headRefOid>`.
 - **Incremental review** (after a push, or `--incremental`): `node <skill folder>/scripts/ocr-review.ts last-reviewed-sha <number>`. If it prints a sha and `git merge-base --is-ancestor <sha> HEAD` succeeds, the range is `<sha>..<headRefOid>`. Otherwise (no previous OCR review, or a rebase rewrote the branch) fall back to a full review and say why.

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 // The marker is how the git-push hook and incremental reviews find the last commit this tool reviewed.
 const REVIEW_MARKER_PREFIX = "<!-- ocr-review reviewed-sha=";
@@ -48,7 +49,8 @@ interface PriorFindingVerdict {
 }
 
 interface ReviewInput {
-	pr: number;
+	// Absent on a local review.
+	pr?: number;
 	headSha: string;
 	fromSha: string;
 	confidence: number;
@@ -120,8 +122,54 @@ interface OpenFinding {
 	location: string;
 }
 
+// A local review keeps its state in the git dir, one file per branch: never committed, never on GitHub.
+// address-pr-comments reads and updates the same file; references/local-mode.md documents the format.
+const LocalFindingStatus = {
+	Open: "open",
+	Closed: "closed",
+} as const;
+type LocalFindingStatus = (typeof LocalFindingStatus)[keyof typeof LocalFindingStatus];
+
+interface LocalNote {
+	author: string;
+	body: string;
+}
+
+interface LocalFinding extends Finding {
+	id: number;
+	status: LocalFindingStatus;
+	raisedAt: string;
+	notes: LocalNote[];
+}
+
+interface LocalState {
+	version: 1;
+	branch: string;
+	base: string;
+	lastReviewedSha: string;
+	fromSha: string;
+	confidence: number;
+	confidenceReason: string;
+	summary: string;
+	nextId: number;
+	findings: LocalFinding[];
+}
+
 function gh(args: string[], input?: string): string {
 	return execFileSync("gh", args, { encoding: "utf8", input, maxBuffer: 64 * 1024 * 1024 });
+}
+
+function git(args: string[]): string {
+	return execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).trim();
+}
+
+function gitSucceeds(args: string[]): boolean {
+	try {
+		execFileSync("git", args, { stdio: "ignore" });
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 function repoNameWithOwner(): string {
@@ -439,7 +487,7 @@ function pullRequestVerdict(
 		input.priorFindings === undefined
 	) {
 		throw new Error(
-			"An incremental review needs prConfidence, prConfidenceReason, prSummary and priorFindings for the PR body.",
+			"An incremental review needs prConfidence, prConfidenceReason, prSummary and priorFindings for the whole-change verdict.",
 		);
 	}
 	return { confidence: input.prConfidence, reason: input.prConfidenceReason, summary: input.prSummary };
@@ -448,16 +496,20 @@ function pullRequestVerdict(
 function postReview(inputPath: string, isDryRun: boolean): void {
 	const input = JSON.parse(readFileSync(inputPath, "utf8")) as ReviewInput;
 	assertConfidenceIsValid("confidence", input.confidence);
+	if (input.pr === undefined) {
+		throw new Error("The reply has no `pr`: post a review of local commits with --local.");
+	}
+	const pr = input.pr;
 	const repo = repoNameWithOwner();
-	assertPullRequestHeadIs(repo, input.pr, input.headSha);
-	const isIncremental = isIncrementalRange(repo, input.pr, input);
+	assertPullRequestHeadIs(repo, pr, input.headSha);
+	const isIncremental = isIncrementalRange(repo, pr, input);
 	const verdict = pullRequestVerdict(input, isIncremental);
 	assertConfidenceIsValid("prConfidence", verdict.confidence);
-	const linesByPath = commentableLinesByPath(repo, input.pr);
-	const priorFindings = readOpenPriorFindings(repo, input.pr);
+	const linesByPath = commentableLinesByPath(repo, pr);
+	const priorFindings = readOpenPriorFindings(repo, pr);
 	if (priorFindings.length > 0 && input.priorFindings === undefined) {
 		throw new Error(
-			`PR #${input.pr} has ${priorFindings.length} unresolved OCR finding(s): pass review-state to the reviewer and post its priorFindings.`,
+			`PR #${pr} has ${priorFindings.length} unresolved OCR finding(s): pass review-state to the reviewer and post its priorFindings.`,
 		);
 	}
 
@@ -518,18 +570,18 @@ function postReview(inputPath: string, isDryRun: boolean): void {
 
 	const posted = JSON.parse(
 		gh(
-			["api", "--method", "POST", `repos/${repo}/pulls/${input.pr}/reviews`, "--input", "-"],
+			["api", "--method", "POST", `repos/${repo}/pulls/${pr}/reviews`, "--input", "-"],
 			JSON.stringify(review),
 		),
 	) as { id: number; html_url: string };
 	const postedInline = JSON.parse(
-		gh(["api", "--paginate", "--slurp", `repos/${repo}/pulls/${input.pr}/reviews/${posted.id}/comments`]),
+		gh(["api", "--paginate", "--slurp", `repos/${repo}/pulls/${pr}/reviews/${posted.id}/comments`]),
 	) as PostedComment[][];
 	const postedFileLevel = fileLevelComments.map(
 		(comment) =>
 			JSON.parse(
 				gh(
-					["api", "--method", "POST", `repos/${repo}/pulls/${input.pr}/comments`, "--input", "-"],
+					["api", "--method", "POST", `repos/${repo}/pulls/${pr}/comments`, "--input", "-"],
 					JSON.stringify(comment),
 				),
 			) as PostedComment,
@@ -567,12 +619,12 @@ function postReview(inputPath: string, isDryRun: boolean): void {
 		posted.html_url,
 	);
 	gh(
-		["api", "--method", "PATCH", `repos/${repo}/pulls/${input.pr}`, "--input", "-"],
-		JSON.stringify({ body: withOcrBlock(pullRequestBody(repo, input.pr), block) }),
+		["api", "--method", "PATCH", `repos/${repo}/pulls/${pr}`, "--input", "-"],
+		JSON.stringify({ body: withOcrBlock(pullRequestBody(repo, pr), block) }),
 	);
 	// The marker goes on last: until every write above succeeds, the next run must not treat this head as reviewed.
 	gh(
-		["api", "--method", "PUT", `repos/${repo}/pulls/${input.pr}/reviews/${posted.id}`, "--input", "-"],
+		["api", "--method", "PUT", `repos/${repo}/pulls/${pr}/reviews/${posted.id}`, "--input", "-"],
 		JSON.stringify({ body: withReviewedMarker(review.body, input.headSha) }),
 	);
 	console.log(posted.html_url);
@@ -585,26 +637,262 @@ function printLastReviewedSha(pr: number): void {
 	}
 }
 
-const [command, argument, flag] = process.argv.slice(2);
-switch (command) {
-	case "post":
-		if (argument === undefined) {
-			throw new Error("Usage: node ocr-review.ts post <findings.json> [--dry-run]");
+function currentBranch(): string {
+	if (!gitSucceeds(["symbolic-ref", "--quiet", "HEAD"])) {
+		throw new Error("HEAD is detached: check out a branch before a local review.");
+	}
+	return git(["symbolic-ref", "--short", "HEAD"]);
+}
+
+function assertBaseExists(base: string): void {
+	if (!gitSucceeds(["rev-parse", "--verify", "--quiet", `${base}^{commit}`])) {
+		throw new Error(`Unknown base ${base}: fetch it first, or pass the right --base.`);
+	}
+}
+
+function localStatePaths(branch: string): { state: string; report: string } {
+	const directory = resolve(git(["rev-parse", "--git-path", "ocr-review"]));
+	const name = encodeURIComponent(branch);
+	return { state: `${directory}/${name}.json`, report: `${directory}/${name}.md` };
+}
+
+// Like a merged PR's threads, a state goes away once its commits have shipped, or once the branch has nothing left to ship.
+function loadLocalState(base: string): LocalState | undefined {
+	assertBaseExists(base);
+	const paths = localStatePaths(currentBranch());
+	let state: LocalState;
+	try {
+		state = JSON.parse(readFileSync(paths.state, "utf8")) as LocalState;
+	} catch (error) {
+		if ((error as { code?: string }).code === "ENOENT") {
+			return undefined;
 		}
-		postReview(argument, flag === "--dry-run");
-		break;
-	case "last-reviewed-sha":
-		if (argument === undefined) {
-			throw new Error("Usage: node ocr-review.ts last-reviewed-sha <pr-number>");
+		throw error;
+	}
+	const hasNothingToShip = git(["rev-list", "--count", `${base}..HEAD`]) === "0";
+	const hasShipped = gitSucceeds(["merge-base", "--is-ancestor", state.lastReviewedSha, base]);
+	if (hasNothingToShip || hasShipped) {
+		rmSync(paths.state, { force: true });
+		rmSync(paths.report, { force: true });
+		return undefined;
+	}
+	return state;
+}
+
+function writeFileAtomically(path: string, content: string): void {
+	mkdirSync(dirname(path), { recursive: true });
+	writeFileSync(`${path}.tmp`, content);
+	renameSync(`${path}.tmp`, path);
+}
+
+function openLocalFindings(state: LocalState | undefined): LocalFinding[] {
+	return (state?.findings ?? []).filter((finding) => finding.status === LocalFindingStatus.Open);
+}
+
+function findingLocation(finding: Finding): string {
+	const hasRange = finding.startLine !== undefined && finding.startLine < finding.line;
+	return hasRange ? `${finding.path}:${finding.startLine}-${finding.line}` : `${finding.path}:${finding.line}`;
+}
+
+// The terminal has no suggestion blocks, so a suggestion becomes a plain replacement for the cited lines.
+function formatLocalFindingBody(finding: Finding): string {
+	return [
+		findingHeading(finding),
+		finding.body,
+		finding.verification === undefined ? undefined : `**How this was verified:** ${finding.verification}`,
+		finding.suggestion === undefined
+			? undefined
+			: `**Suggested replacement for \`${findingLocation(finding)}\`:**\n\n\`\`\`\n${finding.suggestion}\n\`\`\``,
+	]
+		.filter((section) => section !== undefined)
+		.join("\n\n");
+}
+
+function printLocalLastReviewedSha(base: string): void {
+	const lastReviewedSha = loadLocalState(base)?.lastReviewedSha;
+	if (lastReviewedSha !== undefined) {
+		console.log(lastReviewedSha);
+	}
+}
+
+function printLocalReviewState(base: string): void {
+	const state = loadLocalState(base);
+	const openFindings = openLocalFindings(state).map((finding) => ({
+		commentId: finding.id,
+		path: finding.path,
+		line: finding.line,
+		body: formatLocalFindingBody(finding),
+		replies: finding.notes,
+	}));
+	console.log(JSON.stringify({ summary: state?.summary, openFindings }, null, 2));
+}
+
+function formatLocalReport(input: ReviewInput, state: LocalState, isIncremental: boolean): string {
+	const openFindings = openLocalFindings(state);
+	const checkedSection =
+		input.checked === undefined || input.checked.length === 0
+			? undefined
+			: `Checked (not exhaustive):\n\n${input.checked.map((item) => `- ${item}`).join("\n")}`;
+	const findingsSection =
+		openFindings.length === 0
+			? "No open findings."
+			: `### Open findings (${openFindings.length})\n\n${openFindings
+					.map((finding) => {
+						const origin = finding.raisedAt === state.lastReviewedSha ? "" : " · from an earlier review";
+						return `#### #${finding.id} · \`${findingLocation(finding)}\`${origin}\n\n${formatLocalFindingBody(finding)}`;
+					})
+					.join("\n\n---\n\n")}`;
+	return [
+		"## 🤖 OCR review of local commits",
+		`### Confidence score: ${state.confidence}/5`,
+		state.confidenceReason,
+		isIncremental ? `New commits only: ${input.confidence}/5. ${input.confidenceReason}` : undefined,
+		checkedSection,
+		`### Summary\n\n${state.summary}`,
+		findingsSection,
+		`Reviewed \`${input.fromSha.slice(0, 10)}..${input.headSha.slice(0, 10)}\` on \`${state.branch}\` against \`${state.base}\` with Claude Code in OCR delegation mode.`,
+	]
+		.filter((section) => section !== undefined)
+		.join("\n\n");
+}
+
+function postLocalReview(inputPath: string, base: string, isDryRun: boolean): void {
+	const input = JSON.parse(readFileSync(inputPath, "utf8")) as ReviewInput;
+	assertConfidenceIsValid("confidence", input.confidence);
+	const head = git(["rev-parse", "HEAD"]);
+	if (input.headSha !== head) {
+		throw new Error(`HEAD is ${head} but the review covers ${input.headSha}. Review HEAD instead.`);
+	}
+	const state = loadLocalState(base);
+	const isIncremental = input.fromSha !== git(["merge-base", base, input.headSha]);
+	const verdict = pullRequestVerdict(input, isIncremental);
+	assertConfidenceIsValid("prConfidence", verdict.confidence);
+	const priorOpen = openLocalFindings(state);
+	if (priorOpen.length > 0 && input.priorFindings === undefined) {
+		throw new Error(
+			`The branch has ${priorOpen.length} open local OCR finding(s): pass review-state to the reviewer and post its priorFindings.`,
+		);
+	}
+
+	const closedIds = new Set(
+		(input.priorFindings ?? [])
+			.filter((prior) => prior.status === PriorFindingStatus.Closed)
+			.map((prior) => prior.commentId),
+	);
+	const priorFindings = (state?.findings ?? []).map((finding) =>
+		finding.status === LocalFindingStatus.Open && closedIds.has(finding.id)
+			? {
+					...finding,
+					status: LocalFindingStatus.Closed,
+					notes: [
+						...finding.notes,
+						{ author: "ocr-review", body: `Closed by the review of \`${input.headSha.slice(0, 10)}\`.` },
+					],
+				}
+			: finding,
+	);
+	let nextId = state?.nextId ?? 1;
+	const newFindings = input.findings.map(
+		(finding): LocalFinding => ({
+			...finding,
+			id: nextId++,
+			status: LocalFindingStatus.Open,
+			raisedAt: input.headSha,
+			notes: [],
+		}),
+	);
+	const branch = currentBranch();
+	const newState: LocalState = {
+		version: 1,
+		branch,
+		base,
+		lastReviewedSha: input.headSha,
+		fromSha: input.fromSha,
+		confidence: verdict.confidence,
+		confidenceReason: verdict.reason,
+		summary: verdict.summary,
+		nextId,
+		findings: [...priorFindings, ...newFindings],
+	};
+	const report = formatLocalReport(input, newState, isIncremental);
+	if (isDryRun) {
+		console.log(report);
+		return;
+	}
+	const paths = localStatePaths(branch);
+	writeFileAtomically(paths.report, `${report}\n`);
+	// The state goes last: the next run treats this head as reviewed only once the report exists too.
+	writeFileAtomically(paths.state, `${JSON.stringify(newState, null, "\t")}\n`);
+	console.log(`${report}\n\nSaved to ${paths.report}`);
+}
+
+const USAGE = `Usage:
+  node ocr-review.ts post <findings.json> [--dry-run]
+  node ocr-review.ts last-reviewed-sha <pr-number>
+  node ocr-review.ts review-state <pr-number>
+  node ocr-review.ts post <findings.json> --local --base <ref> [--dry-run]
+  node ocr-review.ts last-reviewed-sha --local --base <ref>
+  node ocr-review.ts review-state --local --base <ref>`;
+
+function parseArguments(argv: string[]): { positional: string[]; flags: Set<string>; base?: string } {
+	const positional: string[] = [];
+	const flags = new Set<string>();
+	let base: string | undefined;
+	for (let index = 0; index < argv.length; index++) {
+		const argument = argv[index] ?? "";
+		if (argument === "--base") {
+			base = argv[++index];
+			if (base === undefined || base.startsWith("--")) {
+				throw new Error(`--base needs a ref.\n${USAGE}`);
+			}
+		} else if (argument.startsWith("--")) {
+			flags.add(argument);
+		} else {
+			positional.push(argument);
 		}
-		printLastReviewedSha(Number(argument));
-		break;
-	case "review-state":
-		if (argument === undefined) {
-			throw new Error("Usage: node ocr-review.ts review-state <pr-number>");
-		}
-		printReviewState(Number(argument));
-		break;
-	default:
-		throw new Error("Usage: node ocr-review.ts <post|last-reviewed-sha|review-state> ...");
+	}
+	return { positional, flags, base };
+}
+
+const [command, ...rest] = process.argv.slice(2);
+const { positional, flags, base } = parseArguments(rest);
+const [argument] = positional;
+const isDryRun = flags.has("--dry-run");
+if (flags.has("--local")) {
+	if (base === undefined) {
+		throw new Error(`--local needs --base <ref>.\n${USAGE}`);
+	}
+	switch (command) {
+		case "post":
+			if (argument === undefined) {
+				throw new Error(USAGE);
+			}
+			postLocalReview(argument, base, isDryRun);
+			break;
+		case "last-reviewed-sha":
+			printLocalLastReviewedSha(base);
+			break;
+		case "review-state":
+			printLocalReviewState(base);
+			break;
+		default:
+			throw new Error(USAGE);
+	}
+} else {
+	if (argument === undefined) {
+		throw new Error(USAGE);
+	}
+	switch (command) {
+		case "post":
+			postReview(argument, isDryRun);
+			break;
+		case "last-reviewed-sha":
+			printLastReviewedSha(Number(argument));
+			break;
+		case "review-state":
+			printReviewState(Number(argument));
+			break;
+		default:
+			throw new Error(USAGE);
+	}
 }
