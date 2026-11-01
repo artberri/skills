@@ -22,7 +22,7 @@ Run `review-state` first: it drops a state whose commits have shipped.
 - **Nothing to ship** (`git rev-list --count <base>..HEAD` prints `0`): say so and stop.
 - **Full review** (the default): the range is `$(git merge-base <base> HEAD)..HEAD`.
 - **Incremental review** (`--incremental`, or after fixing earlier local findings): if `last-reviewed-sha` prints a sha and `git merge-base --is-ancestor <sha> HEAD` succeeds, the range is `<sha>..HEAD`. Otherwise (no earlier review, or a rebase rewrote the commits) fall back to a full review and say why.
-- **Review state:** when the saved `review-state` output lists any `openFindings`, pass its path to the reviewer, on a full review too.
+- **Review state:** when `last-reviewed-sha` prints a sha, the branch has an earlier local review: pass the saved `review-state` output's path to the reviewer, on a full review too. It holds the earlier summary, which an incremental review builds on, and the findings still open.
 - **Range already reviewed** (the last reviewed sha equals HEAD): say so and stop.
 - **New commits only merge the base:** the same check as for a PR, with `<base>` in place of `origin/<baseRefName>`.
 
