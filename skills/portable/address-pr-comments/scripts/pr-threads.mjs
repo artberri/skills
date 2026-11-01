@@ -247,7 +247,7 @@ function hasShipped(state) {
 		// Not an ancestor, or the sha is gone: try the other checks.
 	}
 	try {
-		const cherry = git(['cherry', state.base, state.lastReviewedSha, state.fromSha]);
+		const cherry = git(['cherry', state.base, state.lastReviewedSha]);
 		if (!cherry.split('\n').some((line) => line.startsWith('+'))) {
 			return true;
 		}

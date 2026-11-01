@@ -662,7 +662,7 @@ function hasReviewedCommitsShipped(state: LocalState, base: string): boolean {
 		return true;
 	}
 	try {
-		const cherry = git(["cherry", base, state.lastReviewedSha, state.fromSha]);
+		const cherry = git(["cherry", base, state.lastReviewedSha]);
 		return !cherry.split("\n").some((line) => line.startsWith("+"));
 	} catch {
 		// A sha that no longer exists can't be compared.
