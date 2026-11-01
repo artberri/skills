@@ -144,6 +144,14 @@ else
 		fail "$manifest: agents must list exactly the portable agents:$(printf '\n%s' "$expected")"
 fi
 
+# ocr-review, its agent and setup-ocr each run OCR through npx, pinned. A
+# version that drifts in one of them reviews with different rules than the
+# preview and setup show.
+ocr_pins="$(grep -rhoE --exclude-dir='*-workspace' 'open-code-review@[^[:space:]`"]+' skills agents | sort -u || true)"
+if [ "$(printf '%s' "$ocr_pins" | grep -c .)" -gt 1 ]; then
+	fail "Open Code Review is pinned to more than one version; use the same one everywhere:$(printf '\n%s' "$ocr_pins")"
+fi
+
 if [ "$errors" -gt 0 ]; then
 	echo "$errors problem(s) found" >&2
 	exit 1
