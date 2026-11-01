@@ -20,6 +20,6 @@ Guidance for `adapt-skill` when it installs or refreshes the `ship` template. It
 
 **C. Commit convention and tidy commands.** Propose them, or say a git hook already tidies on commit.
 
-**D. Self-review.** If the project has a pre-PR checklist, propose the self-review paragraph pointing at it. If it has none, say the paragraph is left out, and mention that `/setup-ocr` can create one.
+**D. Self-review.** If the project has a pre-PR checklist, propose the self-review paragraph pointing at it. If it has none, say the paragraph is left out, and mention that `/setup-review-docs` can create one.
 
 **E. Reviews** (pull requests only). Say whether `ocr-review` and `address-pr-comments` are available. Then ask whether anything else should be waited for or checked after the PR opens: required CI checks, or another review bot. Propose what you found on recent PRs.

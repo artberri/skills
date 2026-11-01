@@ -6,7 +6,7 @@ description: >-
   user wants to "ship", "ship it", "open a PR", "raise a PR", "create a pull request", "commit and push this", "get this
   reviewed", or invokes `/ship` (optionally with `--base <branch>`). Reach for it the moment a chunk of work is finished.
 metadata:
-  template-revision: "1"
+  template-revision: "2"
 ---
 
 # Ship
