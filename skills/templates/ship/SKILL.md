@@ -6,7 +6,7 @@ description: >-
   user wants to "ship", "ship it", "open a PR", "raise a PR", "create a pull request", "commit and push this", "get this
   reviewed", or invokes `/ship` (optionally with `--base <branch>`). Reach for it the moment a chunk of work is finished.
 metadata:
-  template-revision: "2"
+  template-revision: "3"
 ---
 
 # Ship
@@ -15,7 +15,7 @@ Gets finished work shipped with as little ceremony as possible: the safe, conven
 
 **Operating principle:** decide and act, don't interrogate. Stop and ask only for the judgment calls the user must own: a possible secret, files that look unrelated to the change, a rebase conflict, or a review finding that needs a product decision.
 
-<!-- CUSTOMIZE: how this project ships. Keep one of the two variants, "pull requests" or "main branch", in this paragraph and in steps 2, 4, 5, 6 and 7, and delete the other. Set the base branch to the remote's default branch (`git remote show origin`). -->
+<!-- CUSTOMIZE: how this project ships. Keep one of the two variants, "pull requests" or "main branch", in this paragraph and in steps 2, 4, 5, 6, 7 and 8, and delete the other. Set the base branch to the remote's default branch (`git remote show origin`). -->
 This project ships **through pull requests** against `main`. `ship` accepts `--base <branch>` to target another base. (Main-branch variant: this project ships **by committing straight to `main`**: no feature branches, no pull requests.)
 
 ## Step 1: Read the current state
@@ -60,13 +60,25 @@ Without the `commit` skill: stage by explicit path, never `git add -A`. Don't st
 
 On a conflict, stop: report the conflicting files and ask how to proceed. Never guess a resolution.
 
-## Step 5: Push
+## Step 5: Review before pushing
+
+**Pull requests:** skip this step. The review happens on the PR, in step 8.
+
+**Main branch.** Once pushed, a commit is shipped, so the review happens here, on the commits about to go out. It comes after step 4 so it sees them exactly as they will land.
+
+- **OCR review.** If the `ocr-review` skill is available, run it in local mode (`--local`) without asking. Skip it for docs-only commits or a very small, obvious change, and say so.
+- **Address the findings.** If the review left open findings and the `address-pr-comments` skill is available, run it with `--local`. It shows a verdict table and waits for the user's confirmation, then commits the fixes without pushing. Otherwise, list the findings and ask whether to push anyway.
+- **When the review scored 1 or 2,** don't push on the strength of the fixes alone: run `ocr-review --local --incremental` once on the fix commits, and if it still scores below 3, stop and ask.
+
+One bounded pass: at most that one re-review, then go on to step 6.
+
+## Step 6: Push
 
 **Pull requests:** `git push -u origin <branch>` for a new branch, `git push --force-with-lease` once it exists on the remote (after a rebase). Never a bare `--force`. If the push is rejected, the remote has commits you don't: stop and ask.
 
-**Main branch:** `git push origin main`, never forced. If it is rejected, run step 4 once more and retry; if it is rejected again, stop and ask.
+**Main branch:** `git push origin main`, never forced. If it is rejected, run step 4 once more and retry, without reviewing again: the rebase only replayed commits step 5 already reviewed; if it is rejected again, stop and ask.
 
-## Step 6: Open the pull request
+## Step 7: Open the pull request
 
 **Main branch:** skip this step.
 
@@ -96,7 +108,7 @@ gh pr create --base "<base>" --title "<title>" --body "<body>"
 
 **Updating a PR body later:** never replace it wholesale with `gh pr edit --body`. Review bots keep their own blocks in it (OCR between `<!-- ocr_comment -->` and `<!-- /ocr_comment -->`). Read the current body, edit around those blocks, and write back the merged result.
 
-## Step 7: First review round
+## Step 8: First review round
 
 **Main branch:** skip to the checks paragraph below, if this project kept it.
 
@@ -107,9 +119,9 @@ gh pr create --base "<base>" --title "<title>" --body "<body>"
 
 **Address the findings.** If the `address-pr-comments` skill is available, run it on the PR to work through the review's findings. It shows a verdict table and waits for the user's confirmation before changing anything. Otherwise, list the findings in the report and leave them for the user. One bounded review pass per ship: don't wait for a second round.
 
-## Step 8: Report
+## Step 9: Report
 
-Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Note what the review round found and what happened to each finding, and anything left for the user to decide.
+Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Note what the review round (step 5 or 8) found and what happened to each finding, and anything left for the user to decide.
 
 ## Edge cases
 

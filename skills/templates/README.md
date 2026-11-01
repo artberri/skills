@@ -6,5 +6,5 @@ To install one, or refresh it later, run `/adapt-skill <skill>` inside the proje
 
 - **[create-plan](./create-plan/SKILL.md)**: Plan a feature, refactor or fix as vertical-slice phases in the project's plans folder: a plan folder per task, or a board with one plan per ticket. Revises plans with completed phases locked, and audits them against the code.
 - **[execute-plan](./execute-plan/SKILL.md)**: Carry out a plan one phase at a time, with outside-in TDD and small commits, and archive it to `done/` with a date prefix when the last phase is done. Works through boards plan by plan.
-- **[ship](./ship/SKILL.md)**: Take finished work to shipped in one move: commit, rebase, push and, for projects that ship through pull requests, open the PR and run the first review round.
+- **[ship](./ship/SKILL.md)**: Take finished work to shipped in one move: commit, rebase, push and, for projects that ship through pull requests, open the PR and run the first review round; for projects that push straight to main, run a local OCR review before pushing.
 - **[write-acceptance-criteria](./write-acceptance-criteria/SKILL.md)**: Write acceptance criteria for a feature by cross-referencing its tickets, specs, designs, discussions and the code, flag conflicts and gaps, and write the approved criteria back to the tickets. Also revises existing criteria.

@@ -22,4 +22,9 @@ Guidance for `adapt-skill` when it installs or refreshes the `ship` template. It
 
 **D. Self-review.** If the project has a pre-PR checklist, propose the self-review paragraph pointing at it. If it has none, say the paragraph is left out, and mention that `/setup-review-docs` can create one.
 
-**E. Reviews** (pull requests only). Say whether `ocr-review` and `address-pr-comments` are available. Then ask whether anything else should be waited for or checked after the PR opens: required CI checks, or another review bot. Propose what you found on recent PRs.
+**E. Reviews.** Say whether `ocr-review` and `address-pr-comments` are available. Either way the review round stays: it is skipped at run time when they're missing.
+
+- **Pull requests:** the review runs on the PR after it opens (step 8). Ask whether anything else should be waited for or checked then: required CI checks, or another review bot. Propose what you found on recent PRs.
+- **Main branch:** the review runs locally before the push (step 5), with `ocr-review --local` and `address-pr-comments --local`. Say so, and mention that `/setup-ocr` tailors the review to the project if it has no `.opencodereview/` folder yet. Step 8 keeps only the checks paragraph, for CI that runs after the push, if the project has any.
+
+On a refresh from revision 2, the steps from 5 on are renumbered, and a main-branch project gains the local review in step 5: carry the project's own wording over to the new numbers.
