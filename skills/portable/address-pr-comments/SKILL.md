@@ -1,20 +1,30 @@
 ---
 name: address-pr-comments
-description: Address unresolved PR review comments end to end. Fetch every open thread and any findings left outside threads, evaluate each one (agree or disagree, with a reason), apply the agreed fixes, run the project's checks, commit and push, reply on disagreements, then resolve the threads. Use when the user says "address PR comments", "fix review feedback", "respond to the review", "resolve PR threads", "check PR comments", or shares a PR that has open review threads.
+description: Address unresolved PR review comments end to end. Fetch every open thread and any findings left outside threads, evaluate each one (agree or disagree, with a reason), apply the agreed fixes, run the project's checks, commit and push, reply on disagreements, then resolve the threads. With `--local`, works through the findings a local OCR review (`ocr-review --local`) saved for the current branch instead, and commits without pushing. Use when the user says "address PR comments", "fix review feedback", "respond to the review", "resolve PR threads", "check PR comments", "address the local OCR findings", or shares a PR that has open review threads.
 ---
 
 # Address PR comments
 
 ## Prerequisites
 
-- `gh` CLI authenticated (`gh auth status`)
+- `gh` CLI authenticated (`gh auth status`), except in local mode
 - Node.js 18+
 
 If either is missing, tell the user and stop.
 
 ## Input
 
-A PR number, URL, or nothing: infer it from the current branch if omitted.
+A PR number, URL, or nothing: infer it from the current branch if omitted. `--local` selects local mode, as does a branch with no PR when `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-list` finds open findings.
+
+## Local mode
+
+Local findings come from `ocr-review --local`, saved for the current branch on this machine: there is no PR, no thread and nobody to reply to. The workflow below applies with these changes:
+
+- **Step 1:** gather the findings with `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-list`. There are no review bodies or PR body to read. If it lists nothing, say so and stop.
+- **Step 3:** the **Source** column is `Local OCR` and the item number is the finding's `FINDING_ID`. Confirming means the fixes are committed locally, not pushed, and every finding marked closed.
+- **Step 5:** commit, but don't push. Pushing is the user's call, or the next step of `ship`.
+- **Steps 6 and 7:** instead of replying and resolving, close each finding with a note: `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-resolve <FINDING_ID> "<note>"`. For an agreed one, the note says what changed and in which commit; for a disagreed one, why the code is right. Both get closed, since no other reviewer is waiting on them. Leave an item the user excluded open.
+- **Step 8:** offer `/ocr-review --local --incremental`.
 
 ## Workflow
 

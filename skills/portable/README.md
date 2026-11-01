@@ -2,7 +2,7 @@
 
 Skills that work as they are, in any project.
 
-- **[address-pr-comments](./address-pr-comments/SKILL.md)**: Work through a PR's open review comments: evaluate each one, apply the agreed fixes, commit and push, reply on disagreements and resolve the threads. Needs Node.js 18+ and `gh`.
+- **[address-pr-comments](./address-pr-comments/SKILL.md)**: Work through a PR's open review comments: evaluate each one, apply the agreed fixes, commit and push, reply on disagreements and resolve the threads. With `--local`, works through the findings of a local OCR review and commits without pushing. Needs Node.js 18+ and, for PRs, `gh`.
 - **[adapt-skill](./adapt-skill/SKILL.md)**: Install a skill template into a project, or refresh one already there, filling in its `CUSTOMIZE` markers from the project. Run it again when the project or the template changes.
 - **[adversarial-review](./adversarial-review/SKILL.md)**: Review local changes before shipping with fresh-context reviewers who know only the desired outcomes: one reviewer, or a council focused on different areas with findings ranked by consensus.
 - **[capture-learnings](./capture-learnings/SKILL.md)**: Review the conversation for corrections, gotchas, patterns and missed skills, check them against the project's docs, and write the approved ones where the next agent will find them.

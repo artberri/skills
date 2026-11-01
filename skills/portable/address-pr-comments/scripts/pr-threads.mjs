@@ -6,9 +6,18 @@
  *   node pr-threads.mjs list <PR_NUMBER>               List unresolved threads
  *   node pr-threads.mjs resolve <THREAD_NODE_ID>       Resolve a thread
  *   node pr-threads.mjs reply <THREAD_NODE_ID> <body>  Reply to a thread
+ *   node pr-threads.mjs local-list                     List open local OCR findings
+ *   node pr-threads.mjs local-resolve <ID> <note>      Close a local OCR finding
+ *
+ * Local findings are the ones `ocr-review --local` saves for the current
+ * branch in `$(git rev-parse --git-path ocr-review)/<branch>.json`, with the
+ * branch name URL-encoded. The format is ocr-review's: see its
+ * references/local-mode.md. Only `status` and `notes` are changed here.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
+import { readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const GH_GRAPHQL = 'https://api.github.com/graphql';
 
@@ -200,6 +209,98 @@ async function replyToThread(threadId, body) {
 	console.log(JSON.stringify({ id: json.id, status: 'created' }));
 }
 
+function git(args) {
+	return execFileSync('git', args, { encoding: 'utf8' }).trim();
+}
+
+function localStatePath() {
+	let branch;
+	try {
+		branch = git(['symbolic-ref', '--short', '--quiet', 'HEAD']);
+	} catch {
+		console.error('Error: HEAD is detached. Check out the branch that was reviewed.');
+		process.exit(1);
+	}
+	const directory = resolve(git(['rev-parse', '--git-path', 'ocr-review']));
+	return `${directory}/${encodeURIComponent(branch)}.json`;
+}
+
+function readLocalState() {
+	const path = localStatePath();
+	try {
+		return { path, state: JSON.parse(readFileSync(path, 'utf8')) };
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			return { path, state: undefined };
+		}
+		throw error;
+	}
+}
+
+function hasShipped(state) {
+	try {
+		execFileSync('git', ['merge-base', '--is-ancestor', state.lastReviewedSha, state.base], { stdio: 'ignore' });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function listLocalFindings() {
+	const { state } = readLocalState();
+	if (state && hasShipped(state)) {
+		console.log('The reviewed commits have already shipped: no open local OCR findings.');
+		return;
+	}
+	const open = (state?.findings ?? []).filter((f) => f.status === 'open');
+	if (open.length === 0) {
+		console.log('No open local OCR findings.');
+		return;
+	}
+	console.log(
+		`Local OCR review of ${state.branch} at ${state.lastReviewedSha.slice(0, 10)}: confidence ${state.confidence}/5. ${state.confidenceReason}\n---`,
+	);
+	for (const finding of open) {
+		const hasRange = finding.startLine !== undefined && finding.startLine < finding.line;
+		const location = hasRange
+			? `${finding.path}:${finding.startLine}-${finding.line}`
+			: `${finding.path}:${finding.line}`;
+		const lines = [
+			`FINDING_ID: ${finding.id}`,
+			`FILE: ${location}`,
+			`SEVERITY: ${finding.severity} (${finding.category})`,
+			`TITLE: ${finding.title}`,
+			'BODY:',
+			indent(finding.body),
+		];
+		if (finding.verification) {
+			lines.push('VERIFIED BY:', indent(finding.verification));
+		}
+		if (finding.suggestion) {
+			lines.push(`SUGGESTED REPLACEMENT for ${location}:`, indent(finding.suggestion));
+		}
+		for (const note of finding.notes) {
+			lines.push(`NOTE from ${note.author}:`, indent(note.body));
+		}
+		lines.push('---');
+		console.log(lines.join('\n'));
+	}
+}
+
+function resolveLocalFinding(id, note) {
+	const { path, state } = readLocalState();
+	const finding = state?.findings.find((f) => f.id === id);
+	if (!finding) {
+		console.error(`Error: no local OCR finding #${id} on this branch.`);
+		process.exit(1);
+	}
+	finding.status = 'closed';
+	finding.notes.push({ author: 'address-pr-comments', body: note });
+	writeFileSync(`${path}.tmp`, `${JSON.stringify(state, null, '\t')}\n`);
+	renameSync(`${path}.tmp`, path);
+	console.log(JSON.stringify({ id, status: 'closed' }));
+}
+
 const [, , command, ...args] = process.argv;
 
 switch (command) {
@@ -224,7 +325,17 @@ switch (command) {
 		}
 		await replyToThread(args[0], args.slice(1).join(' '));
 		break;
+	case 'local-list':
+		listLocalFindings();
+		break;
+	case 'local-resolve':
+		if (!args[0] || !args[1] || !Number.isInteger(Number(args[0]))) {
+			console.error('Usage: pr-threads.mjs local-resolve <FINDING_ID> "<note>"');
+			process.exit(1);
+		}
+		resolveLocalFinding(Number(args[0]), args.slice(1).join(' '));
+		break;
 	default:
-		console.error('Unknown command. Use: list | resolve | reply');
+		console.error('Unknown command. Use: list | resolve | reply | local-list | local-resolve');
 		process.exit(1);
 }
