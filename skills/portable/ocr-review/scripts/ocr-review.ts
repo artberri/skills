@@ -656,6 +656,20 @@ function localStatePaths(branch: string): { state: string; report: string } {
 	return { state: `${directory}/${name}.json`, report: `${directory}/${name}.md` };
 }
 
+// The reviewed commits are in the base, or their changes are: a rebase before the push gives them new shas.
+function hasReviewedCommitsShipped(state: LocalState, base: string): boolean {
+	if (gitSucceeds(["merge-base", "--is-ancestor", state.lastReviewedSha, base])) {
+		return true;
+	}
+	try {
+		const cherry = git(["cherry", base, state.lastReviewedSha, state.fromSha]);
+		return !cherry.split("\n").some((line) => line.startsWith("+"));
+	} catch {
+		// A sha that no longer exists can't be compared.
+		return false;
+	}
+}
+
 // Like a merged PR's threads, a state goes away once its commits have shipped, or once the branch has nothing left to ship.
 function loadLocalState(base: string): LocalState | undefined {
 	assertBaseExists(base);
@@ -670,8 +684,7 @@ function loadLocalState(base: string): LocalState | undefined {
 		throw error;
 	}
 	const hasNothingToShip = git(["rev-list", "--count", `${base}..HEAD`]) === "0";
-	const hasShipped = gitSucceeds(["merge-base", "--is-ancestor", state.lastReviewedSha, base]);
-	if (hasNothingToShip || hasShipped) {
+	if (hasNothingToShip || hasReviewedCommitsShipped(state, base)) {
 		rmSync(paths.state, { force: true });
 		rmSync(paths.report, { force: true });
 		return undefined;

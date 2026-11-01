@@ -2,7 +2,7 @@
 
 Reviews the commits on the current branch that haven't shipped yet, with no PR and no GitHub: for projects that push straight to the default branch, or a branch that has no PR yet. The reviewer and the rules are the same as for a PR. Only the range, the review state and where the findings go change.
 
-The findings go into a Markdown report and a state file in the git dir, one pair per branch: `$(git rev-parse --git-path ocr-review)/<branch>.md` and `.json`, with the branch name URL-encoded. They are never committed and never leave the machine. `address-pr-comments --local` works through them. Once the reviewed commits have shipped (they are in the base), or the branch has nothing left to ship, the next run drops both files, as a merged PR leaves its threads behind.
+The findings go into a Markdown report and a state file in the git dir, one pair per branch: `$(git rev-parse --git-path ocr-review)/<branch>.md` and `.json`, with the branch name URL-encoded. They are never committed and never leave the machine. `address-pr-comments --local` works through them. Once the reviewed commits have shipped (they are in the base, or their changes are, after a rebase gave them new shas), or the branch has nothing left to ship, the next run drops both files, as a merged PR leaves its threads behind.
 
 Step 0 still applies, except that `gh` isn't needed.
 

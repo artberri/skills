@@ -237,10 +237,25 @@ function readLocalState() {
 	}
 }
 
+// The same rule ocr-review applies before dropping a state: the reviewed commits are in the base, their changes are
+// (a rebase before the push gives them new shas), or the branch has nothing left to ship.
 function hasShipped(state) {
 	try {
 		execFileSync('git', ['merge-base', '--is-ancestor', state.lastReviewedSha, state.base], { stdio: 'ignore' });
 		return true;
+	} catch {
+		// Not an ancestor, or the sha is gone: try the other checks.
+	}
+	try {
+		const cherry = git(['cherry', state.base, state.lastReviewedSha, state.fromSha]);
+		if (!cherry.split('\n').some((line) => line.startsWith('+'))) {
+			return true;
+		}
+	} catch {
+		// A sha that no longer exists can't be compared.
+	}
+	try {
+		return git(['rev-list', '--count', `${state.base}..HEAD`]) === '0';
 	} catch {
 		return false;
 	}
@@ -289,6 +304,10 @@ function listLocalFindings() {
 
 function resolveLocalFinding(id, note) {
 	const { path, state } = readLocalState();
+	if (state && hasShipped(state)) {
+		console.error('Error: the reviewed commits have already shipped, so their local findings are gone.');
+		process.exit(1);
+	}
 	const finding = state?.findings.find((f) => f.id === id);
 	if (!finding) {
 		console.error(`Error: no local OCR finding #${id} on this branch.`);
