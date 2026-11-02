@@ -63,7 +63,8 @@ Write the files. Then:
 
 - Check `rule.json` parses: `node -e 'JSON.parse(require("fs").readFileSync(".opencodereview/rule.json", "utf8"))'`.
 - Check every doc path in `background.md` and in the rules exists.
-- Run `npx -y @alibaba-group/open-code-review@1.12.12 delegate preview --from <a commit ~20 commits back> --to HEAD -B .opencodereview/background.md` and check the reviewable and excluded files match what the user expects: tests in, generated files out.
+- Run the two `npx` commands below as plain commands from the repository root, with shas and paths written out: no `cd`, `;`, `&&`, pipes, redirects or `$( )`. A permission allow rule for the pinned `npx` command only matches it in that form; a compound command falls to the safety check, which blocks downloading and running a package. Get the sha first with its own `git rev-parse HEAD~20`.
+- Run `npx -y @alibaba-group/open-code-review@1.12.12 delegate preview --from <that sha> --to HEAD -B .opencodereview/background.md` and check the reviewable and excluded files match what the user expects: tests in, generated files out.
 - Run `npx -y @alibaba-group/open-code-review@1.12.12 delegate rule <one path per rule>` and check each gets the intended rule.
 
 Tell the user what was written and that the files are meant to be committed, so every reviewer on the team gets the same setup. Don't commit them yourself.
