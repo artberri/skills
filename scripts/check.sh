@@ -15,8 +15,57 @@ fail() {
 	errors=$((errors + 1))
 }
 
+warnings=0
+warn() {
+	echo "warning: $*" >&2
+	warnings=$((warnings + 1))
+}
+
 valid_name() {
 	printf '%s\n' "$1" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'
+}
+
+# Checks a skill's evals/ folder against the format scripts/evals/run.sh
+# reads. A missing evals.json is only a warning for now, while the existing
+# skills get their evals.
+check_evals() {
+	local skill_dir="$1" name="$2" evals triggers fixture
+	evals="$skill_dir/evals/evals.json"
+	triggers="$skill_dir/evals/triggers.json"
+
+	if [ -f "$triggers" ] && ! jq -e '
+		type == "array" and length > 0
+		and all(.[]; (.query | type == "string" and length > 0) and (.should_trigger | type == "boolean"))
+		and any(.[]; .should_trigger) and any(.[]; .should_trigger | not)
+	' "$triggers" >/dev/null 2>&1; then
+		fail "$triggers: needs {query, should_trigger} entries, at least one true and one false"
+	fi
+
+	if [ ! -f "$evals" ]; then
+		warn "$skill_dir has no evals/evals.json"
+		return
+	fi
+	if ! jq -e '.evals | type == "array" and length > 0' "$evals" >/dev/null 2>&1; then
+		fail "$evals: needs an \"evals\" list with at least one eval"
+		return
+	fi
+	[ "$(jq -r '.skill_name // ""' "$evals")" = "$name" ] || fail "$evals: skill_name must be '$name'"
+	jq -e '[.evals[].id] | all(type == "number" and . == floor) and length == (unique | length)' "$evals" >/dev/null ||
+		fail "$evals: ids must be unique whole numbers"
+	jq -e 'all(.evals[];
+		(.prompt | type == "string" and length > 0)
+		and (.expectations | type == "array" and length > 0 and all(type == "string"))
+		and (.followups // [] | type == "array" and all(type == "string"))
+		and (.with_plugin // false | type == "boolean")
+		and (.fixture // "" | type == "string"))' "$evals" >/dev/null ||
+		fail "$evals: every eval needs a prompt and expectations (strings); followups is a list of strings, with_plugin true or false"
+	for fixture in $(jq -r '.evals[].fixture // empty' "$evals" | sort -u); do
+		if ! valid_name "$fixture"; then
+			fail "$evals: fixture '$fixture' must be lowercase letters, digits and hyphens"
+		elif [ ! -x "$skill_dir/evals/fixtures/$fixture.sh" ]; then
+			fail "$evals: fixture '$fixture' needs an executable evals/fixtures/$fixture.sh"
+		fi
+	done
 }
 
 # Checks the rules skills and agents share: frontmatter, name format, marker
@@ -104,6 +153,14 @@ for bucket in portable templates drafts; do
 			fail "$skill_dir/SETUP.md: setup guidance must not contain CUSTOMIZE markers"
 		fi
 
+		if [ "$bucket" != drafts ]; then
+			if command -v jq >/dev/null; then
+				check_evals "$skill_dir" "$name"
+			else
+				fail "jq is needed to check $skill_dir/evals"
+			fi
+		fi
+
 		for agent in $(skill_agents "$skill_md"); do
 			case "$agent_buckets" in
 			*" $agent:"*)
@@ -156,4 +213,8 @@ if [ "$errors" -gt 0 ]; then
 	echo "$errors problem(s) found" >&2
 	exit 1
 fi
-echo "all skills and agents ok"
+if [ "$warnings" -gt 0 ]; then
+	echo "all skills and agents ok, with $warnings warning(s)"
+else
+	echo "all skills and agents ok"
+fi
