@@ -13,7 +13,7 @@ jobs:
       - name: Install shfmt
         run: sudo apt-get update && sudo apt-get install -y shfmt
       - name: ShellCheck
-        run: git ls-files -z "*.sh" | xargs -0 shellcheck -x
+        run: git ls-files -z "*.sh" "scripts/evals/stubs/*" | xargs -0 shellcheck -x
       - name: shfmt
         run: shfmt -d .
       - name: Validate skills

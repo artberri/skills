@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# A stand-in for the GitHub CLI during evals. It never talks to GitHub: it
+# logs every call to $EVAL_STATE_DIR/gh.log, one JSON array of arguments per
+# line (["pr","create","--base","main"]), so expectations can check what a
+# skill asked for, and fakes the few answers skills need to carry on. One pull
+# request at most, kept in $EVAL_STATE_DIR/pr.json.
+
+if [ -z "${EVAL_STATE_DIR:-}" ]; then
+	echo "gh (eval stub): EVAL_STATE_DIR is not set; refusing to run outside an eval" >&2
+	exit 1
+fi
+
+log="$EVAL_STATE_DIR/gh.log"
+pr="$EVAL_STATE_DIR/pr.json"
+
+# Each argument goes through --arg, which jq never reads as an option, on any
+# version.
+for arg in "$@"; do
+	jq -n --arg a "$arg" '$a'
+done | jq -sc . >>"$log"
+
+# flag <long> <short> <args...>: prints the value after a flag (--base main,
+# --base=main or -B main), or nothing. Pass "" as <short> when there is none.
+flag() {
+	local long="$1" short="$2"
+	shift 2
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		"$long" | "$short")
+			if [ -n "$1" ] && [ $# -ge 2 ]; then
+				printf '%s' "$2"
+				return
+			fi
+			;;
+		"$long"=*)
+			printf '%s' "${1#*=}"
+			return
+			;;
+		esac
+		shift
+	done
+}
+
+# emit <json> <args...>: prints JSON the way `gh ... --json <fields> [--jq
+# <expr>]` would.
+emit() {
+	local json="$1" fields expr
+	shift
+	fields="$(flag --json "" "$@")"
+	expr="$(flag --jq -q "$@")"
+	if [ -n "$fields" ]; then
+		json="$(jq -c --arg fields "$fields" '
+			($fields | split(",")) as $keep
+			| def pick: with_entries(select(.key as $k | $keep | index($k)));
+			if type == "array" then map(pick) else pick end
+		' <<<"$json")"
+	fi
+	if [ -n "$expr" ]; then
+		jq -r "$expr" <<<"$json"
+	else
+		printf '%s\n' "$json"
+	fi
+}
+
+branch="$(git branch --show-current 2>/dev/null || true)"
+
+# current_pr [number]: prints the pull request, its head refreshed, if there is
+# one for the current branch (or with the number given).
+current_pr() {
+	[ -f "$pr" ] || return 1
+	case "${1:-}" in
+	[0-9]*) jq -e --argjson n "$1" '.number == $n' "$pr" >/dev/null || return 1 ;;
+	*) jq -e --arg b "$branch" '.headRefName == $b' "$pr" >/dev/null || return 1 ;;
+	esac
+	jq -c --arg sha "$(git rev-parse HEAD 2>/dev/null || true)" '. + {headRefOid: $sha}' "$pr"
+}
+
+case "${1:-} ${2:-}" in
+"auth status")
+	echo "github.com"
+	echo "  ✓ Logged in to github.com account eval (eval stub)"
+	;;
+"repo view")
+	shift 2
+	emit '{"name":"app","owner":{"login":"example"},"nameWithOwner":"example/app","url":"https://github.com/example/app","defaultBranchRef":{"name":"main"}}' "$@"
+	;;
+"pr create")
+	shift 2
+	if current_pr >/dev/null; then
+		echo "a pull request for branch \"$branch\" into branch \"main\" already exists:" >&2
+		jq -r .url "$pr" >&2
+		exit 1
+	fi
+	base="$(flag --base -B "$@")"
+	jq -n --arg branch "$branch" --arg base "${base:-main}" \
+		--arg title "$(flag --title -t "$@")" --arg body "$(flag --body -b "$@")" '{
+			number: 1,
+			url: "https://github.com/example/app/pull/1",
+			headRefName: $branch,
+			baseRefName: $base,
+			title: $title,
+			body: $body,
+			state: "OPEN"
+		}' >"$pr"
+	jq -r .url "$pr"
+	;;
+"pr view")
+	shift 2
+	number=""
+	case "${1:-}" in
+	[0-9]*) number="$1" ;;
+	esac
+	if ! json="$(current_pr "$number")"; then
+		echo "no pull requests found for branch \"$branch\"" >&2
+		exit 1
+	fi
+	emit "$json" "$@"
+	;;
+"pr list")
+	shift 2
+	if json="$(current_pr)"; then
+		json="[$json]"
+	else
+		json="[]"
+	fi
+	emit "$json" "$@"
+	;;
+"pr checks")
+	echo "no checks reported on the '$branch' branch"
+	;;
+*)
+	# Anything else (pr edit, pr comment, api...) succeeds silently. The log
+	# still shows it was called.
+	;;
+esac

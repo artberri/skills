@@ -59,6 +59,20 @@ When creating a skill or substantially revising one, use the skill-creator skill
 - Skip its packaging step (`.skill` files). Skills here are installed from the repo.
 - Its output still has to follow the rules above and pass `scripts/check.sh`.
 
+## Evals
+
+Every portable and template skill should have `evals/evals.json`. For now `scripts/check.sh` only warns when one is missing. The format is skill-creator's, plus three optional fields per eval that `scripts/evals/run.sh` reads:
+
+- `fixture`: the name of a script in `evals/fixtures/<name>.sh` that builds the eval's starting state. It gets an empty folder and creates the repository at `<folder>/repo`, usually with `eval_repo` from `scripts/evals/fixture-lib.sh` (sourced through `$EVAL_LIB`), which also makes a bare `origin` to push to. Helpers shared by one skill's fixtures go in a sourced file next to them.
+- `followups`: the user's answers, sent in order in the same session after each reply. Use them when the skill should stop and ask; the first reply is then graded on whether it asked.
+- `with_plugin`: `true` loads this repo as a plugin, so the skills it chains to are available. By default only the skill under test is installed, which tests its fallbacks when the others are missing.
+
+Write expectations that can be checked against `outputs/git-state.txt` (branches, commits and their files, the remote's refs) and `outputs/gh.log` (every `gh` call), not only against the agent's reply. `gh` is a stub (`scripts/evals/stubs/gh`) that never reaches GitHub and fakes one pull request at a time.
+
+`evals/triggers.json` holds `{query, should_trigger}` pairs, in skill-creator's format, that test the description. Include near misses that belong to a sibling skill. `run.sh --triggers` runs each query a few times with the skill installed as it would be in a project and this repo's plugin loaded, so the siblings compete, and records the first tool call of each run: the query triggered the skill if that call invokes it. The queries run in a fresh repository from `evals/fixtures/triggers.sh`, or an empty folder without one; give a skill that acts on work in progress a `triggers.sh`, or the model looks around first. skill-creator's own trigger runner installs a stand-in command with a different name and no siblings, so its numbers don't carry over.
+
+Run them with `scripts/evals/run.sh <skill> [eval-id...]`, or `--triggers`. Each run uses a temporary config folder, so it needs `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or `ANTHROPIC_API_KEY`. Runs cost model usage, so CI only validates the files.
+
 ## CUSTOMIZE markers
 
 A template marks each project-specific part with an HTML comment placed just above the content it governs:

@@ -62,9 +62,10 @@ scripts/
 	add-template.sh              copy a template (and its agents) into a project, without adapt-skill
 	check.sh                     validate every skill, agent and README
 	lib.sh                       helpers shared by the scripts
+	evals/run.sh                 run a skill's evals in throwaway repositories and grade them
 ```
 
-Each skill is a folder with a `SKILL.md` and any reference files it loads on demand.
+Each skill is a folder with a `SKILL.md` and any reference files it loads on demand, plus its evals in `evals/`.
 
 ## Credits
 
