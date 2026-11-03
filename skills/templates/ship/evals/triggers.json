@@ -1,0 +1,12 @@
+[
+	{"query": "ok that's done, ship it", "should_trigger": true},
+	{"query": "open a PR for this against develop", "should_trigger": true},
+	{"query": "the timezone fix is finished, can you get it reviewed?", "should_trigger": true},
+	{"query": "commit and push this", "should_trigger": true},
+	{"query": "raise a pull request with these changes", "should_trigger": true},
+	{"query": "commit this but don't push yet", "should_trigger": false},
+	{"query": "split my changes into a few commits", "should_trigger": false},
+	{"query": "review PR 42 with OCR", "should_trigger": false},
+	{"query": "address the review comments on PR 42", "should_trigger": false},
+	{"query": "what changed on main since yesterday?", "should_trigger": false}
+]
