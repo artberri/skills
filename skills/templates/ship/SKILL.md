@@ -4,16 +4,18 @@ description: >-
   Take finished work from the working tree to shipped in one move: commit it, bring the branch up to date, push, and,
   when the project ships through pull requests, open the PR and see it through the first review round. Use whenever the
   user wants to "ship", "ship it", "open a PR", "raise a PR", "create a pull request", "commit and push this", "get this
-  reviewed", or invokes `/ship` (optionally with `--base <branch>`). Reach for it the moment a chunk of work is finished.
+  reviewed", "it's ready for review", or invokes `/ship` (optionally with `--base <branch>`). Reach for it the moment the
+  user says a chunk of work is finished or ready for review, before looking at the changes yourself: it reads the state
+  itself.
 metadata:
-  template-revision: "3"
+  template-revision: "4"
 ---
 
 # Ship
 
 Gets finished work shipped with as little ceremony as possible: the safe, conventional choices (branch name, what to commit, commit message, PR title and body) are made automatically, so the user goes from a dirty working tree to a shipped change in one invocation.
 
-**Operating principle:** decide and act, don't interrogate. Stop and ask only for the judgment calls the user must own: a possible secret, files that look unrelated to the change, a rebase conflict, or a review finding that needs a product decision.
+**Operating principle:** decide and act, don't interrogate. Stop and ask only for the judgment calls the user must own: a secret inside the change, files that look unrelated to the change, a rebase conflict, or a review finding that needs a product decision.
 
 <!-- CUSTOMIZE: how this project ships. Keep one of the two variants, "pull requests" or "main branch", in this paragraph and in steps 2, 4, 5, 6, 7 and 8, and delete the other. Set the base branch to the remote's default branch (`git remote show origin`). -->
 This project ships **through pull requests** against `main`. `ship` accepts `--base <branch>` to target another base. (Main-branch variant: this project ships **by committing straight to `main`**: no feature branches, no pull requests.)
@@ -39,6 +41,8 @@ Name the branch with a short kebab-case slug of the change, such as `fix-timezon
 
 **Keep the change coherent.** Look at the changed files. If some clearly don't belong to the same change as the rest (a fix to one feature plus an unrelated CI edit), ask whether to include them. The default is one coherent change per ship.
 
+**Keep secrets out.** Never stage a file of local secrets (`.env` and its variants, private keys, credential files) unless the user asks for it: leave it out without asking, and say so in the report. Stop and ask only when a secret is inside what you would otherwise commit: a token, key or password in a changed or new file that belongs to the change.
+
 <!-- CUSTOMIZE: the tidy commands to run on the files about to be committed (formatter, linter autofix), from package.json scripts, the Makefile, or the pre-commit / lefthook / husky config. If a git hook already runs them on commit, say so instead and drop the commands. -->
 **Tidy** the source files you're about to commit: `npm run format -- <files>` and `npm run lint -- --fix <files>`.
 
@@ -47,7 +51,7 @@ Name the branch with a short kebab-case slug of the change, such as `fix-timezon
 
 **Commit** with the `commit` skill if it is available: it checks the identity, scans for secrets, and splits the work into focused commits. Tell it the message convention below. If nothing is pending and the branch already has commits, skip committing.
 
-Without the `commit` skill: stage by explicit path, never `git add -A`. Don't stage anything that looks like a secret (`.env` files, keys, credentials, files containing tokens): list them and ask. Then commit with the convention below.
+Without the `commit` skill: stage by explicit path, never `git add -A`, keeping secrets out as above. Then commit with the convention below.
 
 <!-- CUSTOMIZE: the commit message convention. Conventional Commits unless the project states another (AGENTS.md, CONTRIBUTING.md, commitlint config) or its history clearly uses one. Add the ticket rule from step 2 if there is one. -->
 **Message convention:** Conventional Commits, `<type>(<scope>): <imperative summary>`. `type` is `feat`, `fix`, `chore`, `refactor`, `docs`, `test` and so on, inferred from the diff; `scope` is the dominant package or module, and can be left out when there isn't one.
@@ -121,7 +125,7 @@ gh pr create --base "<base>" --title "<title>" --body "<body>"
 
 ## Step 9: Report
 
-Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Note what the review round (step 5 or 8) found and what happened to each finding, and anything left for the user to decide.
+Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Note what the review round (step 5 or 8) found and what happened to each finding, any file left out of the commits and why, and anything left for the user to decide.
 
 ## Edge cases
 
