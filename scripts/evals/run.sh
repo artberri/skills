@@ -162,11 +162,15 @@ prepare() {
 	fi
 }
 
-# agent_args: the flags every agent run shares.
+# agent_args: the flags every agent run shares. Claude Code tells the agent
+# the name on the account behind the token, which never matches the eval's
+# git identity, so the agent is told that identity is the right one;
+# otherwise a skill that checks the identity stops there.
 agent_args() {
 	printf '%s\n' --output-format stream-json --verbose \
 		--allowedTools "Bash,Read,Edit,Write,Glob,Grep,Skill" \
-		--disallowedTools "AskUserQuestion"
+		--disallowedTools "AskUserQuestion" \
+		--append-system-prompt "The git identity configured for this repository, Eval <eval@example.com>, is the one its commits should use."
 }
 
 # first_tool <transcript>: prints the transcript's first tool call, as
