@@ -63,11 +63,12 @@ When creating a skill or substantially revising one, use the skill-creator skill
 
 ## Evals
 
-Every portable and template skill should have `evals/evals.json`. For now `scripts/check.sh` only warns when one is missing. The format is skill-creator's, plus three optional fields per eval that `scripts/evals/run.sh` reads:
+Every portable and template skill should have `evals/evals.json`. For now `scripts/check.sh` only warns when one is missing. The format is skill-creator's, plus four optional fields per eval that `scripts/evals/run.sh` reads:
 
 - `fixture`: the name of a script in `evals/fixtures/<name>.sh` that builds the eval's starting state. It gets an empty folder and creates the repository at `<folder>/repo`, usually with `eval_repo` from `scripts/evals/fixture-lib.sh` (sourced through `$EVAL_LIB`), which also makes a bare `origin` to push to. Helpers shared by one skill's fixtures go in a sourced file next to them.
 - `followups`: the user's answers, sent in order in the same session after each reply. Use them when the skill should stop and ask; the first reply is then graded on whether it asked.
 - `with_plugin`: `true` loads this repo as a plugin, so the skills it chains to are available. By default only the skill under test is installed, which tests its fallbacks when the others are missing.
+- `skip_permissions`: `true` runs the eval with `--dangerously-skip-permissions`. Set it only when the skill must write under the project's `.claude/` (installing skills or agents): Claude Code refuses those writes in `-p` mode, whatever the allow rules or hooks say. The agent can then run any command on your machine without asking, network included, so keep it off everywhere else.
 
 Write expectations that can be checked against `outputs/git-state.txt` (branches, commits and their files, the remote's refs), `outputs/claude/` (the repository's `.claude/` folder, without the skill under test, which `git-state.txt` only lists as untracked) and `outputs/gh.log` (every `gh` call), not only against the agent's reply. `gh` is a stub (`scripts/evals/stubs/gh`) that never reaches GitHub and fakes one pull request at a time.
 

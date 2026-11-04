@@ -16,7 +16,8 @@ set -euo pipefail
 #      or loads this repo as a plugin when the eval sets "with_plugin";
 #   3. runs the prompt, then each of the eval's "followups" in the same
 #      session, with a temporary CLAUDE_CONFIG_DIR: none of your settings,
-#      plugins, hooks or memory;
+#      plugins, hooks or memory, and with permission checks skipped when the
+#      eval sets "skip_permissions";
 #   4. saves the replies, the repository's state and the gh calls to
 #      <skill>-workspace/<timestamp>/eval-<id>/outputs/ and grades the
 #      expectations into grading.json, in skill-creator's format.
@@ -279,6 +280,7 @@ turn() {
 		claude -p "$message" "${args[@]}" \
 			${resume_args[@]+"${resume_args[@]}"} \
 			${plugin_args[@]+"${plugin_args[@]}"} \
+			${permission_args[@]+"${permission_args[@]}"} \
 			${model_args[@]+"${model_args[@]}"}
 	) >"$run_dir/transcript-$n.jsonl" 2>"$run_dir/stderr-$n.log" || true
 	jq -Rr 'fromjson? | select(.type == "result") | .result // ""' \
@@ -333,6 +335,14 @@ run_one() {
 	if ! prepare "$tmp" "$fixture" "$(jq -r '.with_plugin // false' <<<"$eval_json")" "$run_dir/fixture.log"; then
 		echo "eval $id: fixture '$fixture' failed, see $run_dir/fixture.log" >&2
 		return
+	fi
+
+	# Claude Code refuses writes under .claude/ in -p mode whatever the
+	# allow rules, path rules or hooks say, so an eval whose skill installs
+	# skills or agents there opts in to skipping permission checks.
+	permission_args=()
+	if [ "$(jq -r '.skip_permissions // false' <<<"$eval_json")" = true ]; then
+		permission_args=(--dangerously-skip-permissions)
 	fi
 
 	session="$(turn 1 "$(jq -r .prompt <<<"$eval_json")")"

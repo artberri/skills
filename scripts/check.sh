@@ -57,8 +57,9 @@ check_evals() {
 		and (.expectations | type == "array" and length > 0 and all(type == "string"))
 		and (.followups // [] | type == "array" and all(type == "string"))
 		and (.with_plugin // false | type == "boolean")
+		and (.skip_permissions // false | type == "boolean")
 		and (.fixture // "" | type == "string"))' "$evals" >/dev/null ||
-		fail "$evals: every eval needs a prompt and expectations (strings); followups is a list of strings, with_plugin true or false"
+		fail "$evals: every eval needs a prompt and expectations (strings); followups is a list of strings, with_plugin and skip_permissions true or false"
 	for fixture in $(jq -r '.evals[].fixture // empty' "$evals" | sort -u); do
 		if ! valid_name "$fixture"; then
 			fail "$evals: fixture '$fixture' must be lowercase letters, digits and hyphens"
