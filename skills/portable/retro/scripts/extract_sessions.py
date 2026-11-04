@@ -9,6 +9,7 @@ Reads one project's sessions from every agent that kept some, or only from
 --agent:
 
 	claude   Claude Code: $CLAUDE_CONFIG_DIR/projects (or ~/.claude/projects)
+	codex    Codex: $CODEX_HOME/sessions (or ~/.codex/sessions)
 	copilot  GitHub Copilot CLI: $COPILOT_HOME/session-state (or ~/.copilot/session-state)
 
 Days are local days. Output: JSON array of session summaries to stdout, each
@@ -56,6 +57,10 @@ PATCH_FILE = re.compile(r"^\*\*\* (?:Update|Add|Delete) File: (.+)$", re.MULTILI
 
 def claude_dir() -> Path:
 	return Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "projects"
+
+
+def codex_dir() -> Path:
+	return Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex") / "sessions"
 
 
 def copilot_dir() -> Path:
@@ -306,10 +311,103 @@ def copilot_sessions(project: list[str]) -> Iterator[Path]:
 			yield events
 
 
-# Both
+# Codex
+
+
+def codex_text(content) -> str:
+	if isinstance(content, list):
+		return "\n".join(
+			str(b.get("text", "")) for b in content if isinstance(b, dict) and str(b.get("type", "")).lower() in ("text", "input_text", "output_text")
+		)
+	return str(content or "")
+
+
+def file_uri_path(uri: str) -> str:
+	return uri[len("file://"):] if uri.startswith("file://") else uri
+
+
+def read_codex(path: Path) -> dict | None:
+	s = Session("codex", path.stem)
+	# Codex records each finished step as an item_completed event: the user's
+	# own messages (without the context Codex adds), its replies, the shell
+	# commands it ran and the files its patch tool changed.
+	fallback_prompts = []
+	saw_user_item = False
+	for event in read_jsonl(path):
+		s.seen_at(event.get("timestamp"))
+		kind = event.get("type")
+		payload = event.get("payload") or {}
+
+		if kind == "session_meta":
+			s.session_id = payload.get("id") or s.session_id
+			s.branch = (payload.get("git") or {}).get("branch") or s.branch
+		elif kind == "response_item" and payload.get("type") == "message" and payload.get("role") == "user":
+			# Only used if a session has no UserMessage items: skip the
+			# environment and instruction blocks Codex sends as user messages.
+			text = codex_text(payload.get("content"))
+			if text and not text.lstrip().startswith(("<", "# AGENTS.md instructions")):
+				fallback_prompts.append(text)
+		elif kind == "event_msg" and payload.get("type") == "item_completed":
+			item = payload.get("item") or {}
+			item_type = item.get("type")
+			if item_type == "UserMessage":
+				saw_user_item = True
+				s.prompt(codex_text(item.get("content")))
+			elif item_type == "AgentMessage":
+				s.reply(codex_text(item.get("content")))
+			elif item_type == "CommandExecution":
+				s.tool("exec_command")
+				command = item.get("command")
+				s.command(command[-1] if isinstance(command, list) and command else str(command or ""))
+				cwd = file_uri_path(str(item.get("cwd") or ""))
+				for parsed in item.get("parsed_cmd") or []:
+					if isinstance(parsed, dict) and parsed.get("type") == "read" and parsed.get("path"):
+						read = os.path.join(cwd, parsed["path"]) if cwd else parsed["path"]
+						s.files_read.add(read)
+						# Codex has no skill tool: it reads the skill's SKILL.md.
+						if os.path.basename(read) == "SKILL.md":
+							s.skills.add(os.path.basename(os.path.dirname(read)))
+			elif item_type == "FileChange":
+				s.tool("apply_patch")
+				s.files_edited.update(str(p) for p in (item.get("changes") or {}))
+			elif item_type:
+				s.tool(item_type)
+	if not saw_user_item:
+		for text in fallback_prompts:
+			s.prompt(text)
+	return s.summary()
+
+
+def codex_project(rollout: Path) -> str | None:
+	# session_meta is the first line.
+	try:
+		with open(rollout, encoding="utf-8") as f:
+			event = json.loads(f.readline() or "{}")
+	except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+		return None
+	if isinstance(event, dict) and event.get("type") == "session_meta":
+		return (event.get("payload") or {}).get("cwd")
+	return None
+
+
+def codex_sessions(project: list[str]) -> Iterator[Path]:
+	# Sessions are filed by date, sessions/YYYY/MM/DD/rollout-*.jsonl, for
+	# every project together.
+	folder = codex_dir()
+	if not folder.is_dir():
+		return
+	wanted = {os.path.realpath(p) for p in project}
+	for rollout in sorted(folder.glob("*/*/*/rollout-*.jsonl")):
+		cwd = codex_project(rollout)
+		if cwd and os.path.realpath(cwd) in wanted:
+			yield rollout
+
+
+# All agents
 
 AGENTS: dict[str, tuple[Callable[[list[str]], Iterator[Path]], Callable[[Path], dict | None], Callable[[], Path]]] = {
 	"claude": (claude_sessions, read_claude, claude_dir),
+	"codex": (codex_sessions, read_codex, codex_dir),
 	"copilot": (copilot_sessions, read_copilot, copilot_dir),
 }
 

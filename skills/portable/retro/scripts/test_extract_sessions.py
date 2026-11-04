@@ -31,6 +31,7 @@ class ExtractSessionsTest(unittest.TestCase):
 		self.project.mkdir()
 		self.claude_home = root / "claude"
 		self.copilot_home = root / "copilot"
+		self.codex_home = root / "codex"
 
 		# Claude Code: one folder per project, named after its path.
 		folder = self.claude_home / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(self.project))
@@ -39,6 +40,10 @@ class ExtractSessionsTest(unittest.TestCase):
 		self.install(TESTDATA / "copilot-events.jsonl", self.copilot_home / "session-state" / "copilot-1" / "events.jsonl", self.project)
 		# A Copilot session from another project, which must be left out.
 		self.install(TESTDATA / "copilot-events.jsonl", self.copilot_home / "session-state" / "other" / "events.jsonl", root / "elsewhere")
+		# Codex: every project's sessions filed by date, tied to one by session_meta.
+		day = self.codex_home / "sessions" / "2026" / "11" / "02"
+		self.install(TESTDATA / "codex-rollout.jsonl", day / "rollout-2026-11-02T16-00-00-codex-1.jsonl", self.project)
+		self.install(TESTDATA / "codex-rollout.jsonl", day / "rollout-2026-11-02T16-00-00-other.jsonl", root / "elsewhere")
 
 	def tearDown(self):
 		self.tmp.cleanup()
@@ -51,7 +56,7 @@ class ExtractSessionsTest(unittest.TestCase):
 		os.utime(dest, None)
 
 	def run_script(self, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
-		env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.claude_home), COPILOT_HOME=str(self.copilot_home))
+		env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.claude_home), COPILOT_HOME=str(self.copilot_home), CODEX_HOME=str(self.codex_home))
 		return subprocess.run(
 			[sys.executable, "-I", str(SCRIPT), "--scope", "day", "--date", DAY, "--cwd", str(cwd or self.project), *args],
 			capture_output=True, text=True, env=env, check=False,
@@ -95,8 +100,25 @@ class ExtractSessionsTest(unittest.TestCase):
 		self.assertEqual(s["tool_usage"], {"skill": 1, "view": 1, "apply_patch": 1, "bash": 1})
 		self.assertEqual(len(s["assistant_summaries"]), 1)
 
+	def test_codex_session(self):
+		[s] = self.sessions("--agent", "codex")
+		p = str(self.project)
+		self.assertEqual(s["agent"], "codex")
+		self.assertEqual(s["session_id"], "codex-1")
+		self.assertEqual(s["title"], "Add a discount option to cart.js")
+		self.assertEqual(s["branch"], "feat/discounts")
+		self.assertEqual(s["duration_minutes"], 7)
+		# The environment block Codex sends as a user message is not a prompt.
+		self.assertEqual(s["user_prompts"], ["Add a discount option to cart.js", "Stop, the discount should apply before tax instead"])
+		self.assertEqual(s["corrections"], ["Stop, the discount should apply before tax instead"])
+		self.assertEqual(s["skills_used"], ["commit"])
+		self.assertEqual(s["files_read"], [f"{p}/.agents/skills/commit/SKILL.md", f"{p}/cart.js"])
+		self.assertEqual(s["files_edited"], [f"{p}/cart.js"])
+		self.assertEqual(s["commits"], ["git add cart.js && git commit -m 'feat: add discounts'"])
+		self.assertEqual(s["tool_usage"], {"exec_command": 3, "apply_patch": 1})
+
 	def test_every_agent_by_default_oldest_first(self):
-		self.assertEqual([s["agent"] for s in self.sessions()], ["claude", "copilot"])
+		self.assertEqual([s["agent"] for s in self.sessions()], ["claude", "copilot", "codex"])
 
 	def test_window_leaves_out_other_days(self):
 		result = self.run_script("--date", "2026-11-05")
@@ -109,6 +131,7 @@ class ExtractSessionsTest(unittest.TestCase):
 		error = json.loads(result.stdout)["error"]
 		self.assertIn("claude (", error)
 		self.assertIn("copilot (", error)
+		self.assertIn("codex (", error)
 
 
 if __name__ == "__main__":
