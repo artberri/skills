@@ -8,7 +8,7 @@ argument-hint: "[template-name]"
 
 A template is a skill with `<!-- CUSTOMIZE: ... -->` HTML comments on its project-specific parts. Each comment says what to fill in and where to look. The content under it, up to the next heading or marker, is an example of the right shape. Adapting replaces every example with what is true for this project and deletes every marker. The result lives in the project, at `.claude/skills/<name>/`, and is meant to be committed.
 
-Templates live in `../../templates/<name>/` relative to this skill's folder, and the agents they use in `../../../agents/templates/` and `../../../agents/portable/`. A template folder may hold a `SETUP.md`: guidance for adapting that template (what to look for, which questions to ask and in what order). Read it and follow it alongside this skill. `SETUP.md` and `evals/` are never copied into the project.
+Templates live in `../../templates/<name>/` relative to this skill's folder, and the agents they use in `../../../agents/templates/` and `../../../agents/portable/`. If `../../templates/` doesn't exist, this skill was installed on its own (for example with `npx skills add`, which leaves the templates out): make a temporary folder with `mktemp -d`, clone this skill's repo into it with `git clone --depth 1 https://github.com/artberri/skills.git <folder>/skills`, read the templates from `<folder>/skills/skills/templates/` and the agents from `<folder>/skills/agents/` instead, and delete the folder when you are done. A template folder may hold a `SETUP.md`: guidance for adapting that template (what to look for, which questions to ask and in what order). Read it and follow it alongside this skill. `SETUP.md` and `evals/` are never copied into the project.
 
 This is a prompt-driven skill, not a script. Explore, present what you found, confirm with the user, then write.
 
@@ -20,8 +20,8 @@ This is a prompt-driven skill, not a script. Explore, present what you found, co
   - **None:** this is an install.
   - **One with markers left:** it was copied (for example by `scripts/add-template.sh`) but never adapted. Treat it as an install, starting from that copy.
   - **One without markers:** this is a refresh. Its content holds the earlier answers and any edits the user made by hand. A lower `template-revision` than the template's means the template has improved since.
-- **Agents:** for each name in the template's `metadata.agents`, find the agent file. A template agent is installed to `.claude/agents/<agent>.md` and adapted like the skill; an existing one without markers was already adapted (another skill may share it), so leave it alone unless this is a refresh and its template changed. A portable agent comes from the plugin: just check it is available.
-- **Template not found** (this skill was copied without the rest of its repo): adapt the project's copy if there is one; otherwise tell the user and stop.
+- **Agents:** for each name in the template's `metadata.agents`, find the agent file. A template agent is installed to `.claude/agents/<agent>.md` and adapted like the skill; an existing one without markers was already adapted (another skill may share it), so leave it alone unless this is a refresh and its template changed. A portable agent normally comes from the plugin: check it is available, and if it isn't (the plugin isn't installed), install it to `.claude/agents/<agent>.md` unchanged.
+- **Template not found** (no templates next to this skill and the clone failed, for example offline): adapt the project's copy if there is one; otherwise tell the user why and stop.
 
 ## 2. Explore
 
