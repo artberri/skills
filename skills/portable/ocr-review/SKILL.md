@@ -3,8 +3,8 @@ name: ocr-review
 description: >-
   Review an open pull request locally with Open Code Review (OCR) in delegation mode and post the findings to the PR
   as a GitHub review. OCR picks the reviewable files and the per-path rules (from `.opencodereview/` when the repo has
-  one); a fresh subagent with no implementation context does the review on the user's Claude Code subscription, so
-  no API cost. With no PR, or with `--local`, it reviews the commits not yet pushed and saves the findings locally
+  one); a fresh subagent with no implementation context does the review on the user's Claude Code or GitHub Copilot
+  subscription, so no API cost. Needs Claude Code or Copilot CLI, the agents that load its reviewer agent. With no PR, or with `--local`, it reviews the commits not yet pushed and saves the findings locally
   instead, for projects that push straight to the default branch. Use this skill when a hook or the ship skill asks
   for it, when the user asks to "review the PR with OCR", "run the OCR review", "OCR review before I push" or
   "re-review the new commits", or invokes `/ocr-review` (optionally with a PR number, `--local` and `--incremental`).
@@ -51,7 +51,7 @@ git rev-parse HEAD
 
 ## Step 2: Review in a fresh subagent
 
-The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent with the Agent tool, with a fresh context. Use the name your Agent tool lists for it: `ocr-reviewer`, or with a plugin prefix such as `artberri:ocr-reviewer` when it comes from a plugin. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
+The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent with your subagent tool (the Agent tool in Claude Code), with a fresh context. Use the name that tool lists for it: `ocr-reviewer`, or with a plugin prefix such as `artberri:ocr-reviewer` when it comes from a plugin. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
 
 ```text
 Review PR <number>: from <from>, to <to>, base <baseRefName>, mode <full | incremental>, in the repository at <repo root>.
@@ -59,7 +59,7 @@ Review PR <number>: from <from>, to <to>, base <baseRefName>, mode <full | incre
 
 When Step 1 saved a review-state file, add `Review state: <path>` with it, on a full review too.
 
-Add nothing else: no design notes, plan context or your own opinion of the change, so the reviewer sees only the code. If the `ocr-reviewer` agent isn't installed, stop and tell the user: this skill needs it.
+Add nothing else: no design notes, plan context or your own opinion of the change, so the reviewer sees only the code. If the `ocr-reviewer` agent isn't available, stop and tell the user: this skill needs it, and only Claude Code and GitHub Copilot CLI load it, from this skill's plugin. Codex and Gemini CLI can't run named agents with a tool list, and skills.sh doesn't install agents. Don't review in this session or in an ad-hoc subagent instead.
 
 The agent replies with the findings JSON. Save the reply, as is, to a scratch path (the session scratchpad, or `mktemp`), never a path inside the repo.
 
