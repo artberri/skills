@@ -55,14 +55,16 @@ Ask the user to pick one:
 
 ## Step 4: Start the reviewers
 
-Build each reviewer's prompt from [references/reviewer-prompt.md](references/reviewer-prompt.md). Reviewers don't see this conversation, so each prompt must stand on its own.
+Build each reviewer's prompt from [references/reviewer-prompt.md](references/reviewer-prompt.md). Each reviewer is a general-purpose subagent, started with your agent's subagent tool and **none of this conversation**, so each prompt must stand on its own. Where a fresh start isn't the default, ask for it: in Codex, `spawn_agent` with `fork_turns: "none"` (its default, `all`, hands the reviewer everything you know).
 
-- **Quick:** one general-purpose agent, with the template's general checklist.
-- **Council and Custom:** one general-purpose agent per focus area, all started in a single message so they run in parallel. Each prompt gets a reviewer number, its focus area and description from the catalog, and the line "Your primary focus is <area>, but flag anything else you find."
+- **Quick:** one reviewer, with the template's general checklist.
+- **Council and Custom:** one reviewer per focus area, all started in a single message so they run in parallel. Each prompt gets a reviewer number, its focus area and description from the catalog, and the line "Your primary focus is <area>, but flag anything else you find."
 
 **Never put in the prompt:** your view of why the code is right, design notes or trade-offs, commit messages, the conversation that led to the design, or verdicts agreed earlier ("we already decided X is fine"). They bias the reviewer towards agreeing.
 
 **Always put in the prompt:** the repository's absolute path, the files in scope, the diff commands to run, the desired outcomes word for word, and one to three failure modes specific to this change.
+
+**If you can't start a subagent with a fresh context**, don't review the change in this session: you would only find what your own reasoning already allows. Write each reviewer's prompt to a file outside the repository (a temporary folder), tell the user to paste each into a new session of any agent, and go on to step 5 with the replies they bring back.
 
 ## Step 5: Triage
 
