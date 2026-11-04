@@ -8,7 +8,8 @@ description: >-
   point at a plan folder or file and ask to start implementing it. For creating a plan, use `create-plan`.
 argument-hint: "[plan folder | plan file]"
 metadata:
-  template-revision: "1"
+  internal: true
+  template-revision: "2"
 ---
 
 # Execute a plan

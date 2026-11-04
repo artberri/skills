@@ -8,7 +8,8 @@ description: >-
   user says a chunk of work is finished or ready for review, before looking at the changes yourself: it reads the state
   itself.
 metadata:
-  template-revision: "4"
+  internal: true
+  template-revision: "5"
 ---
 
 # Ship

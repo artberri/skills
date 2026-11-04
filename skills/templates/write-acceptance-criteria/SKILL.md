@@ -8,7 +8,8 @@ description: >-
   be", "update the AC", "the AC needs changing". For turning criteria into an implementation plan, use `create-plan`.
 argument-hint: "[ticket | update <ticket>]"
 metadata:
-  template-revision: "1"
+  internal: true
+  template-revision: "2"
 ---
 
 # Write acceptance criteria

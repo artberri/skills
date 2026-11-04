@@ -10,7 +10,8 @@ description: >-
   execute directly instead. For executing a plan, use `execute-plan`.
 argument-hint: "[brief path | plan folder | revise <plan folder> | audit <plan folder>]"
 metadata:
-  template-revision: "2"
+  internal: true
+  template-revision: "3"
 ---
 
 # Create a plan
