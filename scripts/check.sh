@@ -149,6 +149,15 @@ for bucket in portable templates drafts; do
 			! metadata_field "$skill_md" template-revision | grep -Eq '^[0-9]+$'; then
 			fail "$skill_md: templates need metadata.template-revision, a whole number"
 		fi
+		# The skills CLI (skills.sh) finds every SKILL.md under skills/, so
+		# only portable skills may be visible to it.
+		internal="$(metadata_field "$skill_md" internal)"
+		if [ "$bucket" = portable ] && [ -n "$internal" ]; then
+			fail "$skill_md: portable skills must not set metadata.internal"
+		fi
+		if [ "$bucket" != portable ] && [ "$internal" != true ]; then
+			fail "$skill_md: $bucket need metadata.internal: true, to hide them from the skills CLI"
+		fi
 		if [ -f "$skill_dir/SETUP.md" ] && has_markers "$skill_dir/SETUP.md"; then
 			fail "$skill_dir/SETUP.md: setup guidance must not contain CUSTOMIZE markers"
 		fi
