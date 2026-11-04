@@ -4,19 +4,18 @@
 		{
 			"id": 1,
 			"fixture": "node-api",
+			"skip_permissions": true,
 			"prompt": "set up create-plan",
 			"followups": [
-				"Yes, go with that.",
-				"Yes, go with that.",
-				"Yes, go with that.",
-				"Yes, go with that.",
-				"Yes, go with that.",
+				"Yes, and go with your recommendation for the rest.",
 				"Looks good, write it."
 			],
-			"expected_output": "Installed on its own, with no templates next to it: clones the artberri/skills repo into a temporary folder, proposes docs/plans/, GitHub issues and HTTP routes from the project before writing, then installs the adapted create-plan to .claude/skills/create-plan/ with no markers, its references, and no SETUP.md or evals.",
+			"expected_output": "Installed on its own, with no templates next to it: clones the artberri/skills repo into a temporary folder, asks SETUP.md's first question (the plans folder, recommending docs/plans/) on its own, takes its recommendations for the rest when told to, shows the draft and waits, then installs the adapted create-plan to .claude/skills/create-plan/ with no markers, its references, and no SETUP.md or evals.",
 			"expectations": [
 				"A transcript shows a git clone of https://github.com/artberri/skills.git",
-				"The first reply proposes or asks about the setup and nothing under .claude/skills/create-plan/ was written during the first turn (transcript-1 has no Write to it)",
+				"The first reply asks only about the plans folder, recommending docs/plans/, and not yet about tickets, specs, contracts or edge cases",
+				"Nothing under .claude/skills/create-plan/ was written before the last turn: transcript-1 and transcript-2 have no Write or Bash command that creates files there",
+				"The second reply shows the draft of the adapted SKILL.md and asks for a go-ahead before writing it",
 				"outputs/claude/skills/create-plan/SKILL.md exists and its frontmatter name is create-plan",
 				"No file under outputs/claude/skills/create-plan/ contains the text <!-- CUSTOMIZE",
 				"outputs/claude/skills/create-plan/SKILL.md says plans live in docs/plans/",

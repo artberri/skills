@@ -31,7 +31,7 @@ On a refresh, also note what changed since the skill was written: new scripts or
 
 ## 3. Confirm
 
-Present what you found, then ask. If `SETUP.md` gives questions and an order, follow it: one question, one answer, then the next, each led by your recommendation so the user can accept it in a word. Otherwise show one list: each marker, the value you propose and its source, and ask about the markers you couldn't settle, all in the same message.
+Present what you found, then ask. If `SETUP.md` gives questions and an order, follow it: one question per message, then wait for the answer before the next, each led by your recommendation so the user can accept it in a word. Do this even when you found every answer yourself; if the user tells you to take your recommendations for the rest, stop asking. Otherwise show one list: each marker, the value you propose and its source, and ask about the markers you couldn't settle, all in the same message.
 
 On a refresh, don't ask again what the existing skill already answers unless it changed; ask only about what is new.
 
@@ -43,7 +43,7 @@ Wait for the answers before writing anything.
 - **Refresh:** start from the project's copy. Keep the user's hand edits, apply what changed in the project, and bring in the template's improvements, adapting any new markers.
 - Keep the frontmatter `name`, and `metadata.template-revision` equal to the template's. Change `description` only if it no longer matches what the adapted skill does.
 
-Show the user the draft: in full on an install, as a diff against the existing copy on a refresh. Let them edit it before writing.
+Show the user the draft: in full on an install, as a diff against the existing copy on a refresh. Then wait for their go-ahead before writing, and apply any edits they ask for. This holds even when they accepted every answer: accepting the answers is not approving the draft.
 
 ## 5. Write and verify
 
