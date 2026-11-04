@@ -1,0 +1,5 @@
+interface:
+  display_name: "Set up review docs"
+  short_description: "Create or refresh the review docs"
+policy:
+  allow_implicit_invocation: false

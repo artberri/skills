@@ -1,0 +1,5 @@
+interface:
+  display_name: "Set up OCR"
+  short_description: "Configure this repo for ocr-review"
+policy:
+  allow_implicit_invocation: false

@@ -164,6 +164,16 @@ for bucket in portable templates drafts; do
 		if [ "$bucket" != portable ] && [ "$internal" != true ]; then
 			fail "$skill_md: $bucket need metadata.internal: true, to hide them from the skills CLI"
 		fi
+		# Codex ignores disable-model-invocation and reads the same choice from
+		# agents/openai.yaml, so a skill is user-invoked in both or neither.
+		user_invoked=false
+		[ "$(frontmatter_field "$skill_md" disable-model-invocation)" = true ] && user_invoked=true
+		codex_implicit_off=false
+		grep -Eq '^[[:space:]]+allow_implicit_invocation:[[:space:]]*false[[:space:]]*$' "$skill_dir/agents/openai.yaml" 2>/dev/null &&
+			codex_implicit_off=true
+		if [ "$user_invoked" != "$codex_implicit_off" ]; then
+			fail "$skill_dir: disable-model-invocation: true and agents/openai.yaml's policy.allow_implicit_invocation: false go together (Codex reads only the second)"
+		fi
 		# Only Claude Code fills in CLAUDE_SKILL_DIR; elsewhere the command
 		# runs /scripts/... and fails.
 		if grep -rlE --include='*.md' '\$\{?CLAUDE_SKILL_DIR' "$skill_dir" >/dev/null; then
