@@ -13,14 +13,14 @@ The conversation you are in is the best source for the *why* of a change. Use it
 
 - `git config user.email` and `git config user.name`: is this the identity this repo should use (work vs personal)? If it looks wrong or is unset, stop and ask.
 - `git config commit.gpgsign`: note whether commits are signed. If signing fails later, stop and tell the user. Never pass `--no-gpg-sign` or turn signing off.
-- `git branch --show-current`: if this is the default branch of a repo where work goes through pull requests, ask whether to create a branch first.
+- `git branch --show-current`: if this is the default branch of a repo where work goes through pull requests, stop and ask whether to create a branch first, and under what name. Ask even when the project's docs say never to commit to the default branch: the user asked for a commit, not a branch.
 - Read the project's commit rules if any: `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, a commitlint config, `.gitmessage`. They win over this skill.
 
 ## 2. Read everything that will be committed
 
 - `git status --short`, `git diff` and `git diff --cached`. Staged changes may come from the user or another tool; include them in your plan, and don't unstage anything without saying so.
 - Untracked files: decide for each whether it belongs in a commit, should be ignored, or should be left alone. Ask when unsure.
-- Scan the diff for anything that must not be committed: secrets, tokens, private keys, `.env` files, and absolute paths containing a username (`/Users/<name>/`, `/home/<name>/`). If the repo is public (`gh repo view --json visibility`), also look for internal hostnames, work identifiers and personal data. Stop and report anything you find.
+- Scan the diff for anything that must not be committed: secrets, tokens, private keys, `.env` files, and absolute paths containing a username (`/Users/<name>/`, `/home/<name>/`). If the repo is public (`gh repo view --json visibility`), also look for internal hostnames, work identifiers and personal data. If you find anything, stop before committing any of the changes, even the clean ones, and report it.
 
 ## 3. Plan the commits
 
