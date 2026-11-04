@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The version check compares with the previous commit or the PR's base.
+          fetch-depth: 0
       - name: Install shfmt
         run: sudo apt-get update && sudo apt-get install -y shfmt
       - name: ShellCheck
@@ -18,6 +21,8 @@ jobs:
         run: shfmt -d .
       - name: Validate skills
         run: scripts/check.sh
+        env:
+          ARTBERRI_VERSION_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
       - name: Test hooks
         run: hooks/git-guardrails/test.sh
       - name: Test retro's session reader

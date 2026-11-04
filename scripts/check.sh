@@ -219,6 +219,23 @@ else
 	listed="$(jq -r '.agents // [] | .[]' "$manifest" | sort)"
 	[ "$listed" = "$expected" ] ||
 		fail "$manifest: agents must list exactly the portable agents:$(printf '\n%s' "$expected")"
+
+	# Claude Code, Codex and Copilot CLI reinstall the plugin only when its
+	# version changes, so a change to what it ships needs a bump to reach
+	# anyone. Compared with ARTBERRI_VERSION_BASE (CI sets it), or origin/main.
+	version="$(jq -r '.version // ""' "$manifest")"
+	printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' ||
+		fail "$manifest: version must be x.y.z, not '$version'"
+	base="${ARTBERRI_VERSION_BASE:-origin/main}"
+	if git rev-parse -q --verify "$base^{commit}" >/dev/null; then
+		base_version="$(git show "$base:$manifest" 2>/dev/null | jq -r '.version // ""' 2>/dev/null || true)"
+		if [ "$version" = "$base_version" ] &&
+			! git diff --quiet "$base" -- .claude-plugin skills/portable agents/portable hooks \
+				':(exclude)skills/portable/*/evals/**' ':(exclude)skills/portable/*/scripts/testdata/**' \
+				':(exclude)skills/portable/*/scripts/test_*'; then
+			fail "$manifest: what the plugin ships changed since $base, but version is still $version; bump it so installs update"
+		fi
+	fi
 fi
 
 # ocr-review, its agent and setup-ocr each run OCR through npx, pinned. A
