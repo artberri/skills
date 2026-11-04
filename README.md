@@ -44,6 +44,8 @@ Or, to load it from a checkout, so edits take effect in the next session, add th
 }
 ```
 
+The plugin also registers optional hooks, all off until you turn them on with an environment variable. One is [git-guardrails](./hooks/git-guardrails/README.md), which blocks the git commands the skills forbid: staging everything, force-pushing, and skipping signing or hooks.
+
 Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri:commit`. Agents always carry the prefix: `artberri:ocr-reviewer`.
 
 ## Layout
@@ -58,6 +60,8 @@ agents/
 	portable/<agent>.md          same buckets, one file per agent
 	templates/<agent>.md
 	drafts/<agent>.md
+hooks/
+	git-guardrails/              optional hook that blocks forbidden git commands
 scripts/
 	add-template.sh              copy a template (and its agents) into a project, without adapt-skill
 	check.sh                     validate every skill, agent and README

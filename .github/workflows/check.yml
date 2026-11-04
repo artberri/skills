@@ -18,3 +18,5 @@ jobs:
         run: shfmt -d .
       - name: Validate skills
         run: scripts/check.sh
+      - name: Test hooks
+        run: hooks/git-guardrails/test.sh

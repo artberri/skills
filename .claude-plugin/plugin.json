@@ -8,6 +8,17 @@
 	"skills": ["./skills/portable/"],
 	"agents": ["./agents/portable/ocr-reviewer.md"],
 	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "ARTBERRI_GIT_GUARDRAILS=\"${ARTBERRI_GIT_GUARDRAILS:-0}\" \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guardrails/git-guardrails.sh\""
+					}
+				]
+			}
+		],
 		"PostToolUse": [
 			{
 				"matcher": "Bash",
