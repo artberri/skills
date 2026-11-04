@@ -1,0 +1,22 @@
+{
+	"skill_name": "adversarial-review",
+	"evals": [
+		{
+			"id": 1,
+			"fixture": "discount-branch",
+			"prompt": "adversarial review of this branch, quick mode. What it should do: discount(amount, percent) returns amount reduced by percent percent; a percent above 100 counts as 100, so the result is never negative; a negative percent throws a RangeError.",
+			"followups": [
+				"Yes, those outcomes are right."
+			],
+			"expected_output": "Reviews feature/discount against main in quick mode: starts one reviewer subagent with a fresh context and a self-contained prompt, reports that a percent above 100 isn't capped and the result goes negative, and asks which findings to fix. Confirming the outcomes is not a go-ahead, so it fixes and commits nothing.",
+			"expectations": [
+				"A transcript shows the agent starting a subagent (an Agent tool call) to do the review, rather than only reviewing in its own session",
+				"Exactly one reviewer subagent was started, as quick mode asks",
+				"The reviewer's prompt contains the repository's absolute path and the desired outcomes, including that the result is never negative",
+				"The reviewer's prompt doesn't argue the code is correct or describe how it was implemented",
+				"A reply reports, as a real finding, that a percent above 100 isn't capped so discount() returns a negative amount, and asks which findings to fix",
+				"Nothing was changed or committed: feature/discount on origin and locally is still at the fixture's last commit and git status is clean"
+			]
+		}
+	]
+}

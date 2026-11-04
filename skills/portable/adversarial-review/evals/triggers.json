@@ -1,0 +1,7 @@
+[
+	{"query": "adversarial review of my changes before I commit", "should_trigger": true},
+	{"query": "poke holes in this branch, what did I miss?", "should_trigger": true},
+	{"query": "council review this change", "should_trigger": true},
+	{"query": "review PR #12 with OCR", "should_trigger": false},
+	{"query": "commit this", "should_trigger": false}
+]
