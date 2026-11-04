@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Retrospective analysis of Claude Code sessions in this project, to surface strategic insights, skill proposals, workflow improvements and recurring friction by reading past session transcripts. Two scopes, day (today's sessions) and week (last 7 days, the default), or a custom window. Use when the user asks for a retrospective, wants to review what happened this week, find cross-session patterns, propose new skills or workflow changes, or wants the big picture on how things are going. Trigger phrases include "retro", "retrospective", "what happened this week", "weekly retro", "any patterns", "review sessions", "how's the workflow going", "what should we change", "/retro", "/retro day", "/retro week".
+description: Retrospective analysis of this project's coding-agent sessions (Claude Code and GitHub Copilot CLI), to surface strategic insights, skill proposals, workflow improvements and recurring friction by reading past session transcripts. Two scopes, day (today's sessions) and week (last 7 days, the default), or a custom window. Use when the user asks for a retrospective, wants to review what happened this week, find cross-session patterns, propose new skills or workflow changes, or wants the big picture on how things are going. Trigger phrases include "retro", "retrospective", "what happened this week", "weekly retro", "any patterns", "review sessions", "how's the workflow going", "what should we change", "/retro", "/retro day", "/retro week".
 ---
 
 # Retro
@@ -30,7 +30,7 @@ python3 <skill-dir>/scripts/extract_sessions.py --scope <day|week> --compact
 
 For a custom window, add `--days <n>` to `--scope week`. `--date YYYY-MM-DD` moves the window's last day; days are local days.
 
-The script reads this project's `.jsonl` transcripts from `$CLAUDE_CONFIG_DIR/projects/` (or `~/.claude/projects/`) and returns a JSON array of session summaries: title, branch, date, duration, user prompts, assistant summaries, corrections, skills used, files edited and read, commits, tool usage and prompt count. If it reports no transcripts for the project, check you are in the project's root (or pass `--cwd`), and tell the user if there are none.
+The script reads this project's sessions from every agent that kept some: Claude Code (`$CLAUDE_CONFIG_DIR/projects/`, or `~/.claude/projects/`) and GitHub Copilot CLI (`$COPILOT_HOME/session-state/`, or `~/.copilot/session-state/`). It returns one JSON array, oldest first, of session summaries: agent, title, branch, date, duration, user prompts, assistant summaries, corrections, skills used, files edited and read, commits, tool usage and prompt count. `tool_usage` keeps each agent's own tool names (`Bash` and `Read` in Claude Code, `bash` and `view` in Copilot); the other fields mean the same for both. Add `--agent claude` or `--agent copilot` when the user wants one agent's sessions only. If it reports no sessions for the project, check you are in the project's root (or pass `--cwd`), and tell the user if there are none.
 
 **For 8 or more sessions:** start one general-purpose subagent per 3-4 sessions, each with a fresh context, to analyse in parallel. Give each its batch of session summaries and the brief below. Collect their outputs before synthesising.
 
@@ -38,7 +38,7 @@ The script reads this project's `.jsonl` transcripts from `$CLAUDE_CONFIG_DIR/pr
 
 Give each subagent (or analyse directly, for a small batch) the session summaries and this brief:
 
-> Analyse these Claude Code session summaries. For each category below, identify the most significant findings. Cite specific sessions and quote user prompts where relevant.
+> Analyse these coding-agent session summaries (the `agent` field says which agent ran each). For each category below, identify the most significant findings. Cite specific sessions and quote user prompts where relevant.
 >
 > **Category 1: What went well**
 > - Skills or workflows that clearly saved time or caught real issues

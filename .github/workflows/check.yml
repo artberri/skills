@@ -20,3 +20,5 @@ jobs:
         run: scripts/check.sh
       - name: Test hooks
         run: hooks/git-guardrails/test.sh
+      - name: Test retro's session reader
+        run: python3 -I skills/portable/retro/scripts/test_extract_sessions.py
