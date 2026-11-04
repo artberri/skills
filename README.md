@@ -23,18 +23,56 @@ scripts/add-template.sh <skill> path/to/project
 
 ## Installing the portable skills and agents
 
-The repo is a Claude Code plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it.
+The repo is a plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it. Claude Code, Codex and GitHub Copilot CLI all install it from the [artberri marketplace](https://github.com/artberri/claude-plugins). A release reaches installs when the plugin's version changes, through each agent's update command below.
 
-Install it from the [artberri marketplace](https://github.com/artberri/claude-plugins):
+### Claude Code
 
 ```sh
 claude plugin marketplace add artberri/claude-plugins
 claude plugin install artberri@artberri
 ```
 
-It tracks `main`, so `claude plugin update artberri@artberri` brings in the latest skills.
+Update with `claude plugin update artberri@artberri`.
 
-Or, to load it from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
+### Codex
+
+```sh
+codex plugin marketplace add artberri/claude-plugins
+codex plugin add artberri@artberri
+```
+
+To update, run `codex plugin add artberri@artberri` again. (`codex plugin marketplace upgrade` only refreshes the marketplace list, not the plugin.)
+
+### GitHub Copilot CLI
+
+```sh
+copilot plugin marketplace add artberri/claude-plugins
+copilot plugin install artberri@artberri
+```
+
+Update with `copilot plugin update artberri@artberri`.
+
+### Others (Gemini CLI, Cursor, OpenCode...)
+
+[skills.sh](https://www.skills.sh/) copies the portable skills into a project, or with `-g` into your home folder:
+
+```sh
+npx skills add artberri/skills
+```
+
+Update with `npx skills update`, and run `add` again to get skills added since. This route installs skills only: no agents or hooks, so `ocr-review` (which needs its reviewer agent) won't run.
+
+### What works where
+
+All three plugin installs load every portable skill. A few depend on the agent:
+
+- `ocr-review` runs in Claude Code and Copilot CLI, which load its reviewer agent; Codex can't start named agents.
+- `retro` reads Claude Code, Codex and Copilot CLI sessions.
+- The optional hooks are written for Claude Code and only tested there.
+
+### From a checkout (Claude Code)
+
+To load the plugin from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
 
 ```json
 {
