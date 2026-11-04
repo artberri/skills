@@ -148,16 +148,21 @@ prepare() {
 		mkdir -p "$work/.claude/skills"
 		cp -R "$skill_dir" "$work/.claude/skills/$skill"
 		rm -rf "$work/.claude/skills/$skill/evals" "$work/.claude/skills/$skill/SETUP.md"
+		installed="/.claude/skills/$skill/"
 		for agent in $(skill_agents "$skill_dir/SKILL.md"); do
 			agent_file="$(find "$repo/agents/templates" "$repo/agents/portable" -name "$agent.md" -print -quit)"
 			[ -n "$agent_file" ] || continue
 			mkdir -p "$work/.claude/agents"
 			cp "$agent_file" "$work/.claude/agents/"
+			installed="$installed /.claude/agents/$agent.md"
 		done
-		# So the skill under test doesn't show up as a change to commit.
+		# So what this installed doesn't show up as a change to commit. Only
+		# that: anything the run itself writes under .claude/ stays visible,
+		# as it would in a real project.
 		if [ -d "$work/.git" ]; then
 			mkdir -p "$work/.git/info"
-			printf '/.claude/\n' >>"$work/.git/info/exclude"
+			# shellcheck disable=SC2086 # one path per word
+			printf '%s\n' $installed >>"$work/.git/info/exclude"
 		fi
 	fi
 }
@@ -344,8 +349,8 @@ run_one() {
 	done
 
 	git_state >"$out/git-state.txt"
-	# What the run wrote under .claude/, which git_state can't show: it is
-	# git-excluded so the skill under test isn't a change to commit.
+	# What the run wrote under .claude/: git_state shows only that it is
+	# there, as an untracked folder, not what it holds.
 	if [ -d "$work/.claude" ]; then
 		cp -R "$work/.claude" "$out/claude"
 		rm -rf "$out/claude/skills/$skill"
