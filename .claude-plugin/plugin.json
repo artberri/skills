@@ -14,7 +14,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "OCR_REVIEW_OFFER=\"${OCR_REVIEW_OFFER:-0}\" \"${CLAUDE_PLUGIN_ROOT}/skills/portable/ocr-review/hooks/ocr-review-offer.sh\""
+						"command": "ARTBERRI_OCR_REVIEW_OFFER=\"${ARTBERRI_OCR_REVIEW_OFFER:-0}\" \"${CLAUDE_PLUGIN_ROOT}/skills/portable/ocr-review/hooks/ocr-review-offer.sh\""
 					}
 				]
 			}

@@ -103,4 +103,4 @@ Tell the user how many threads were fixed, how many were replied to with a disag
 
 ### 8. Offer a re-review
 
-If the `ocr-review` skill is available and the PR has an OCR review (its summary or PR-body block says "OCR review"), ask: "Want me to re-run the OCR review on the new commits?" If yes, run `/ocr-review --incremental`. Skip the question if the OCR hook is turned on (`OCR_REVIEW_OFFER=1`): the push already triggers it.
+If the `ocr-review` skill is available and the PR has an OCR review (its summary or PR-body block says "OCR review"), ask: "Want me to re-run the OCR review on the new commits?" If yes, run `/ocr-review --incremental`. Skip the question if the OCR hook is turned on (`ARTBERRI_OCR_REVIEW_OFFER=1`): the push already triggers it.

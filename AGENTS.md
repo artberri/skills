@@ -46,7 +46,7 @@ When the user asks for a portable skill, challenge that before writing it. List 
 
 - Skills come in as a folder (`./skills/portable/`), so a new portable skill needs no manifest change.
 - Agents must be listed one by one: add every portable agent to `agents`, and nothing else. `scripts/check.sh` enforces this, and rejects `.md` files at the top of `agents/`, which Claude Code would load on its own.
-- Hooks a skill ships are registered in the manifest only if they default to off, with an environment variable to turn them on, because they run for everyone who installs the plugin.
+- Hooks a skill ships are registered in the manifest only if they default to off, with an environment variable to turn them on, because they run for everyone who installs the plugin. Name the variable `ARTBERRI_<NAME>`, so it can't clash with another tool's (`GIT_*` belongs to git).
 - After changing the manifest, run `claude plugin validate .`. Warnings about the bucket `README.md` files lacking frontmatter are expected: the validator reads every `.md` under `agents/`, while Claude Code only loads what the manifest lists.
 
 ## Writing skills with skill-creator

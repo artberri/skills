@@ -4,9 +4,9 @@ set -euo pipefail
 # PostToolUse(Bash) hook: after `gh pr create`, or a `git push` to a PR the
 # ocr-review skill already reviewed, tell Claude to run that review without
 # asking, unless the change is too small to need one.
-# Opt out per shell or project with OCR_REVIEW_OFFER=0.
+# Opt out per shell or project with ARTBERRI_OCR_REVIEW_OFFER=0.
 
-[ "${OCR_REVIEW_OFFER:-1}" = "0" ] && exit 0
+[ "${ARTBERRI_OCR_REVIEW_OFFER:-1}" = "0" ] && exit 0
 command -v jq >/dev/null || exit 0
 command -v gh >/dev/null || exit 0
 
