@@ -73,7 +73,7 @@ check_evals() {
 # rules for the bucket, and the bucket README listing.
 check_entry() {
 	local path="$1" file="$2" name="$3" bucket="$4"
-	local readme link fm_name
+	local readme link fm_name unsafe
 	readme="$(dirname "$path")/README.md"
 
 	valid_name "$name" || fail "$path: name must be lowercase letters, digits and hyphens"
@@ -82,6 +82,11 @@ check_entry() {
 	[ "$fm_name" = "$name" ] || fail "$file: frontmatter name '$fm_name' does not match '$name'"
 
 	[ -n "$(frontmatter_field "$file" description)" ] || fail "$file: missing description"
+
+	unsafe="$(frontmatter_unsafe_lines "$file")"
+	if [ -n "$unsafe" ]; then
+		fail "$file: quote these values or fold them into a >- block; strict YAML parsers (Copilot CLI) reject ': ' and ' #' in an unquoted value:$(printf '\n%s' "$unsafe")"
+	fi
 
 	if [ "$bucket" = portable ] && has_markers "$path"; then
 		fail "$path: portable entries must not contain CUSTOMIZE markers"

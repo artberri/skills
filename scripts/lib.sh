@@ -32,6 +32,34 @@ metadata_field() {
 	' "$1"
 }
 
+# Prints each frontmatter line whose value is an unquoted one-line scalar
+# containing ": " or " #". Claude Code and Codex accept these; strict YAML
+# parsers, like the one Copilot CLI uses, read the first as a nested mapping
+# and the second as a comment. Lines inside a ">" or "|" block are skipped.
+frontmatter_unsafe_lines() {
+	awk '
+		NR == 1 && $0 != "---" { exit }
+		NR > 1 && $0 == "---" { exit }
+		NR == 1 { next }
+		{
+			match($0, /^[ \t]*/)
+			indent = RLENGTH
+		}
+		in_block && (indent > block_indent || $0 ~ /^[ \t]*$/) { next }
+		{ in_block = 0 }
+		match($0, /^[ \t]*[A-Za-z0-9_-]+:[ \t]+/) {
+			value = substr($0, RLENGTH + 1)
+			if (value ~ /^[>|]/) {
+				in_block = 1
+				block_indent = indent
+				next
+			}
+			if (value ~ /^["\047\[{]/) next
+			if (value ~ /: / || value ~ /:$/ || value ~ / #/) print NR ": " $0
+		}
+	' "$1"
+}
+
 # Prints the space-separated agent names a SKILL.md lists under
 # metadata.agents, or nothing.
 skill_agents() {
