@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # PostToolUse(Bash) hook: after `gh pr create`, or a `git push` to a PR the
-# ocr-review skill already reviewed, tell Claude to run that review without
-# asking, unless the change is too small to need one.
+# ocr-review skill already reviewed, tell the agent (Claude Code or Copilot
+# CLI) to run that review without asking, unless the change is too small to
+# need one.
 # Opt out per shell or project with ARTBERRI_OCR_REVIEW_OFFER=0.
 
 [ "${ARTBERRI_OCR_REVIEW_OFFER:-1}" = "0" ] && exit 0
@@ -23,7 +24,9 @@ invokes() {
 
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 if invokes "gh pr create"; then
-	pr_number="$(jq -r '.tool_response.stdout // "" | capture("/pull/(?<number>\\d+)").number // empty' <<<"$input")"
+	# Claude Code puts the command's output in tool_response.stdout, Copilot
+	# CLI in tool_result.text_result_for_llm.
+	pr_number="$(jq -r '(.tool_response.stdout? // .tool_result.text_result_for_llm? // "") | capture("/pull/(?<number>\\d+)").number // empty' <<<"$input")"
 	[ -n "$pr_number" ] || exit 0
 	context="PR #$pr_number was just created. Run the OCR review on it now, without asking the user: invoke the ocr-review skill for PR #$pr_number. Skip it only when the PR is docs-only or a very small, obvious change (a typo, a one-line fix), and say that you skipped it."
 elif invokes "git push"; then
@@ -60,4 +63,10 @@ else
 	exit 0
 fi
 
-jq -n --arg context "$context" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $context}}'
+# Copilot CLI (whose input has tool_result) reads additionalContext at the top
+# level; Claude Code reads it under hookSpecificOutput.
+if jq -e 'has("tool_result")' <<<"$input" >/dev/null; then
+	jq -n --arg context "$context" '{additionalContext: $context}'
+else
+	jq -n --arg context "$context" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $context}}'
+fi
