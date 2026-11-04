@@ -344,6 +344,12 @@ run_one() {
 	done
 
 	git_state >"$out/git-state.txt"
+	# What the run wrote under .claude/, which git_state can't show: it is
+	# git-excluded so the skill under test isn't a change to commit.
+	if [ -d "$work/.claude" ]; then
+		cp -R "$work/.claude" "$out/claude"
+		rm -rf "$out/claude/skills/$skill"
+	fi
 	if [ -f "$tmp/state/gh.log" ]; then
 		cp "$tmp/state/gh.log" "$out/gh.log"
 	else
