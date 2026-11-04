@@ -21,6 +21,8 @@ Without an agent that can run `adapt-skill`, copy the template with the script a
 scripts/add-template.sh <skill> path/to/project
 ```
 
+It picks the skills folder the way `adapt-skill` does: the one the project already keeps skills in, otherwise `.agents/skills/` for a project with an `AGENTS.md` and no `CLAUDE.md`, otherwise `.claude/skills/`. Choose another with `--dir`, for example `--dir .github/skills` for Copilot. Template agents are copied only into a Claude Code project's `.claude/agents/`.
+
 ## Installing the portable skills and agents
 
 The repo is a plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it. Claude Code, Codex and GitHub Copilot CLI all install it from the [artberri marketplace](https://github.com/artberri/claude-plugins). A release reaches installs when the plugin's version changes, through each agent's update command below.
