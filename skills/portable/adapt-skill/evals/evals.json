@@ -1,0 +1,31 @@
+{
+	"skill_name": "adapt-skill",
+	"evals": [
+		{
+			"id": 1,
+			"fixture": "node-api",
+			"prompt": "set up create-plan",
+			"followups": [
+				"Yes, go with that.",
+				"Yes, go with that.",
+				"Yes, go with that.",
+				"Yes, go with that.",
+				"Yes, go with that.",
+				"Looks good, write it."
+			],
+			"expected_output": "Installed on its own, with no templates next to it: clones the artberri/skills repo into a temporary folder, proposes docs/plans/, GitHub issues and HTTP routes from the project before writing, then installs the adapted create-plan to .claude/skills/create-plan/ with no markers, its references, and no SETUP.md or evals.",
+			"expectations": [
+				"A transcript shows a git clone of https://github.com/artberri/skills.git",
+				"The first reply proposes or asks about the setup and nothing under .claude/skills/create-plan/ was written during the first turn (transcript-1 has no Write to it)",
+				"outputs/claude/skills/create-plan/SKILL.md exists and its frontmatter name is create-plan",
+				"No file under outputs/claude/skills/create-plan/ contains the text <!-- CUSTOMIZE",
+				"outputs/claude/skills/create-plan/SKILL.md says plans live in docs/plans/",
+				"outputs/claude/skills/create-plan/SKILL.md treats tickets as GitHub issues referenced as #<number>",
+				"outputs/claude/skills/create-plan/references/ holds plan-template.md and audit-guide.md",
+				"outputs/claude/skills/create-plan/ has no SETUP.md and no evals/ folder",
+				"A transcript shows the temporary folder holding the clone being deleted",
+				"Nothing was committed: main is still at the fixture's single commit, on origin too"
+			]
+		}
+	]
+}
