@@ -1,0 +1,80 @@
+{
+	"skill_name": "commit",
+	"evals": [
+		{
+			"id": 1,
+			"fixture": "two-topics",
+			"prompt": "commit this. The timezone fix is because logs from servers in different regions couldn't be lined up.",
+			"expected_output": "Splits the timezone fix and the CI Node bump into two commits with Conventional Commits subjects, explains the fix with the reason the user gave, and doesn't push.",
+			"expectations": [
+				"There are exactly two new commits on main: one contains only src/time.js and the other only .github/workflows/ci.yml",
+				"The src/time.js commit's subject follows Conventional Commits with type fix",
+				"The .github/workflows/ci.yml commit's subject follows Conventional Commits with type ci, chore or build",
+				"The src/time.js commit's message gives the reason: logs from servers in different regions couldn't be lined up",
+				"Nothing was pushed: origin's main is still at the commit it had before the run",
+				"The working tree is clean after the run"
+			]
+		},
+		{
+			"id": 2,
+			"fixture": "one-file-two-topics",
+			"prompt": "commit these, one commit per change",
+			"expected_output": "Splits src/time.js across two commits: the UTC fix in one, the new formatDuration helper in the other.",
+			"expectations": [
+				"There are exactly two new commits on main, and both change src/time.js",
+				"One commit's patch changes toLocaleString to toISOString and doesn't add formatDuration",
+				"The other commit's patch adds formatDuration and doesn't change toLocaleString",
+				"One subject follows Conventional Commits with type fix and the other with type feat",
+				"The working tree is clean after the run, so the last commit holds both changes"
+			]
+		},
+		{
+			"id": 3,
+			"fixture": "username-path",
+			"prompt": "commit this",
+			"followups": ["Make it relative to the repo root, then commit."],
+			"expected_output": "Spots the absolute path under /Users/jdoe in the new scripts/tail-logs.sh and stops before committing anything; after the answer, commits the fix and the script with the path made relative.",
+			"expectations": [
+				"Before committing anything, the first reply points out the /Users/jdoe path in scripts/tail-logs.sh",
+				"No commit on any branch contains the string /Users/jdoe",
+				"src/time.js and scripts/tail-logs.sh are both committed",
+				"Nothing was pushed: origin's main is still at the commit it had before the run"
+			]
+		},
+		{
+			"id": 4,
+			"fixture": "signing-fails",
+			"prompt": "commit this",
+			"expected_output": "The commit fails to sign; it stops and tells the user, without turning signing off or committing unsigned.",
+			"expectations": [
+				"No new commit was created: main is still at the commit it had before the run",
+				"No command in the transcript passes --no-gpg-sign, sets commit.gpgsign to false (with git config or -c), or changes gpg.program",
+				"The final reply says signing failed and leaves fixing it to the user"
+			]
+		},
+		{
+			"id": 5,
+			"fixture": "pull-requests",
+			"prompt": "commit this",
+			"followups": ["Yes, create one."],
+			"expected_output": "On main in a project whose CONTRIBUTING.md requires pull requests: asks whether to create a branch first, then commits the fix on a new branch without pushing.",
+			"expectations": [
+				"Before committing anything, the first reply asks whether to create a branch instead of committing to main",
+				"main is still at the commit it had before the run",
+				"The fix is committed on a new branch",
+				"Nothing was pushed: origin has no new branch and its main is unchanged"
+			]
+		},
+		{
+			"id": 6,
+			"fixture": "package-style",
+			"prompt": "commit the timezone fix",
+			"expected_output": "Writes the subject in the repo's Go-style convention (`time: ...`), not Conventional Commits.",
+			"expectations": [
+				"There is exactly one new commit on main, and it contains src/time.js",
+				"Its subject starts with `time:` followed by a lowercase summary, like the repo's history",
+				"Its subject doesn't use a Conventional Commits type such as fix: or fix(time):"
+			]
+		}
+	]
+}

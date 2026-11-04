@@ -1,0 +1,12 @@
+[
+	{"query": "commit this", "should_trigger": true},
+	{"query": "commit the timezone fix", "should_trigger": true},
+	{"query": "split these changes into a couple of commits", "should_trigger": true},
+	{"query": "make a commit, but don't push", "should_trigger": true},
+	{"query": "can you commit what I have?", "should_trigger": true},
+	{"query": "write a commit message for these changes, but don't commit", "should_trigger": false},
+	{"query": "review my changes before I commit them", "should_trigger": false},
+	{"query": "what did I change since the last commit?", "should_trigger": false},
+	{"query": "undo my uncommitted changes to src/time.js", "should_trigger": false},
+	{"query": "the timezone fix is done", "should_trigger": false}
+]
