@@ -1,6 +1,12 @@
 ---
 name: research
-description: Research the feasibility, integration cost and risks of adopting a library, tool, platform feature or architectural change, before committing to a plan. Use this skill whenever the user asks "what would it take to…", "is it feasible to…", "can we integrate X", "research X", "how hard would it be to…", or wants to evaluate a technology choice, understand a migration path, or assess integration effort. Also use it when the user asks you to look into a library's docs and known issues together: it combines doc lookup, GitHub issue search and codebase analysis into one structured workflow, so the user doesn't have to prompt for each one.
+description: >-
+  Research the feasibility, integration cost and risks of adopting a library, tool, platform feature or architectural
+  change, before committing to a plan. Use this skill whenever the user asks "what would it take to…", "is it feasible
+  to…", "can we integrate X", "research X", "how hard would it be to…", or wants to evaluate a technology choice,
+  understand a migration path, or assess integration effort. Also use it when the user asks you to look into a
+  library's docs and known issues together: it combines doc lookup, GitHub issue search and codebase analysis into one
+  structured workflow, so the user doesn't have to prompt for each one.
 argument-hint: "<topic> [--no-doc]"
 ---
 
