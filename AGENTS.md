@@ -22,6 +22,7 @@ When the user asks for a portable skill, challenge that before writing it. List 
 - Keep `SKILL.md` short. Move long reference material into sibling files that `SKILL.md` links to and loads only when needed.
 - Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.`
 - Templates and drafts set `metadata.internal: true`; portable skills don't. The `skills` CLI (skills.sh) finds every `SKILL.md` under `skills/`, and this hides the ones it shouldn't install: a template copied without `adapt-skill` keeps its markers, and `skills update` would overwrite an adapted copy. Moving a draft to `portable/` means removing the field. Adapted copies in a project keep it, which is harmless: only the `skills` CLI reads it.
+- Skills also run in agents other than Claude Code (Codex, Copilot, Gemini CLI...), so a command that runs a file in the skill's folder writes it as `<skill-dir>/scripts/...` and says once that `<skill-dir>` is the folder the `SKILL.md` is in. Not `${CLAUDE_SKILL_DIR}`: only Claude Code fills it in. `scripts/check.sh` rejects it.
 
 ## Agents
 

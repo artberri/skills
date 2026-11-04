@@ -159,6 +159,11 @@ for bucket in portable templates drafts; do
 		if [ "$bucket" != portable ] && [ "$internal" != true ]; then
 			fail "$skill_md: $bucket need metadata.internal: true, to hide them from the skills CLI"
 		fi
+		# Only Claude Code fills in CLAUDE_SKILL_DIR; elsewhere the command
+		# runs /scripts/... and fails.
+		if grep -rlE --include='*.md' '\$\{?CLAUDE_SKILL_DIR' "$skill_dir" >/dev/null; then
+			fail "$skill_dir: use <skill-dir>, not CLAUDE_SKILL_DIR, which only Claude Code fills in"
+		fi
 		if [ -f "$skill_dir/SETUP.md" ] && has_markers "$skill_dir/SETUP.md"; then
 			fail "$skill_dir/SETUP.md: setup guidance must not contain CUSTOMIZE markers"
 		fi

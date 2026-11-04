@@ -22,10 +22,10 @@ Parse the scope from the invocation: `/retro` is `week` (the default), `/retro d
 
 ### Step 1: Extract session data
 
-Run from the project's root (needs Python 3.9 or later):
+Run from the project's root (needs Python 3.9 or later), with `<skill-dir>` replaced by the absolute path of the folder this `SKILL.md` is in:
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/extract_sessions.py --scope <day|week> --compact
+python3 <skill-dir>/scripts/extract_sessions.py --scope <day|week> --compact
 ```
 
 For a custom window, add `--days <n>` to `--scope week`. `--date YYYY-MM-DD` moves the window's last day; days are local days.

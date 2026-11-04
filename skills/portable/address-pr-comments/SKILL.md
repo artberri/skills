@@ -12,18 +12,20 @@ description: Address unresolved PR review comments end to end. Fetch every open 
 
 If either is missing, tell the user and stop.
 
+The commands below run `scripts/pr-threads.mjs` from this skill's folder: replace `<skill-dir>` with the absolute path of the folder this `SKILL.md` is in.
+
 ## Input
 
-A PR number, URL, or nothing: infer it from the current branch if omitted. `--local` selects local mode, as does a branch with no PR when `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-list` finds open findings.
+A PR number, URL, or nothing: infer it from the current branch if omitted. `--local` selects local mode, as does a branch with no PR when `node <skill-dir>/scripts/pr-threads.mjs local-list` finds open findings.
 
 ## Local mode
 
 Local findings come from `ocr-review --local`, saved for the current branch on this machine: there is no PR, no thread and nobody to reply to. The workflow below applies with these changes:
 
-- **Step 1:** gather the findings with `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-list`. There are no review bodies or PR body to read. If it lists nothing, say so and stop.
+- **Step 1:** gather the findings with `node <skill-dir>/scripts/pr-threads.mjs local-list`. There are no review bodies or PR body to read. If it lists nothing, say so and stop.
 - **Step 3:** the **Source** column is `Local OCR` and the item number is the finding's `FINDING_ID`. Confirming means the fixes are committed locally, not pushed, and every finding marked closed.
 - **Step 5:** commit, but don't push. Pushing is the user's call, or the next step of `ship`.
-- **Steps 6 and 7:** instead of replying and resolving, close each finding with a note: `node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs local-resolve <FINDING_ID> "<note>"`. For an agreed one, the note says what changed and in which commit; for a disagreed one, why the code is right. Both get closed, since no other reviewer is waiting on them. Leave an item the user excluded open.
+- **Steps 6 and 7:** instead of replying and resolving, close each finding with a note: `node <skill-dir>/scripts/pr-threads.mjs local-resolve <FINDING_ID> "<note>"`. For an agreed one, the note says what changed and in which commit; for a disagreed one, why the code is right. Both get closed, since no other reviewer is waiting on them. Leave an item the user excluded open.
 - **Step 8:** offer `/ocr-review --local --incremental`.
 
 ## Workflow
@@ -32,7 +34,7 @@ Local findings come from `ocr-review --local`, saved for the current branch on t
 
 ```bash
 PR=$(gh pr view --json number -q .number 2>/dev/null || echo "")
-node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs list $PR
+node <skill-dir>/scripts/pr-threads.mjs list $PR
 gh pr view $PR --json body,reviews
 ```
 
@@ -84,7 +86,7 @@ Steps 6 and 7 apply to inline threads only. Findings outside threads have no thr
 For each disagreed thread, post a reply explaining the reasoning:
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs reply <THREAD_NODE_ID> "<reply text>"
+node <skill-dir>/scripts/pr-threads.mjs reply <THREAD_NODE_ID> "<reply text>"
 ```
 
 Keep replies to one or two sentences on why the current approach is correct.
@@ -94,7 +96,7 @@ Keep replies to one or two sentences on why the current approach is correct.
 Resolve each agreed thread (it's fixed) and each disagreed thread from a bot (it has a reply explaining the decision):
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/pr-threads.mjs resolve <THREAD_NODE_ID>
+node <skill-dir>/scripts/pr-threads.mjs resolve <THREAD_NODE_ID>
 ```
 
 For a disagreed thread from a human reviewer, ask the user whether to resolve it or leave it open for the reviewer to answer.
