@@ -13,9 +13,9 @@ Some skills hand work to **agents** (subagents with their own prompt, tools and 
 
 ## Using a template in a project
 
-From inside the project, with the plugin installed, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). It installs the template into `.claude/skills/<skill>`, and any template agents it uses into `.claude/agents/`, filling in every `CUSTOMIZE` marker from what it finds in the project and asking you about anything it can't work out. Run it again later to refresh the skill when the project's conventions or scripts change, or the template improves: it keeps your own edits.
+From inside the project, with the plugin or the `adapt-skill` skill installed, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). It installs the template into the folder where the project keeps its skills (`.claude/skills/`, `.agents/skills/`, `.github/skills/` or `.gemini/skills/`), and, for Claude Code, any template agents it uses into `.claude/agents/`. It fills in every `CUSTOMIZE` marker from what it finds in the project and asks you about anything it can't work out. Run it again later to refresh the skill when the project's conventions or scripts change, or the template improves: it keeps your own edits.
 
-For agents other than Claude Code, copy the template with the script and adapt it by hand:
+Without an agent that can run `adapt-skill`, copy the template with the script and adapt it by hand:
 
 ```sh
 scripts/add-template.sh <skill> path/to/project
