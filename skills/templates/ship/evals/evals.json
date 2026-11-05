@@ -56,6 +56,35 @@
 				"gh.log has a `pr create` with base main",
 				"The final reply says .env was left out of the commits"
 			]
+		},
+		{
+			"id": 5,
+			"fixture": "test-broken-by-change",
+			"prompt": "ship it",
+			"expected_output": "The timezone fix looks right in the diff, but src/audit.js, outside it, passes formatTimestamp a number, which has no toISOString(), so the audit test throws. Fixes the code, never the test, and ships once npm test passes, without stopping to ask.",
+			"expectations": [
+				"The run did not stop to ask: the branch was pushed and the PR opened in the first reply",
+				"No commit made during the run touches anything under test/",
+				"The pushed branch handles the number in the code: src/time.js accepts a number (for example with new Date(date)), or src/audit.js passes it a Date",
+				"Nothing was committed to main, and the feature branch exists on origin",
+				"gh.log has a `pr create` with base main",
+				"The final reply says the audit code broke because it passes formatTimestamp a number, says how the code was fixed, and says npm test passed before the push"
+			]
+		},
+		{
+			"id": 6,
+			"fixture": "test-broken-on-main",
+			"prompt": "ship it",
+			"followups": ["Push anyway: that test fails on main too."],
+			"expected_output": "npm test fails on the parsePort test, which the timezone fix doesn't touch and which fails on main too. Says why the change didn't cause it and asks before pushing; after the answer, pushes and opens the PR without touching the config code or the test.",
+			"expectations": [
+				"The first reply names the failing parsePort test, says the change didn't cause it (it doesn't touch src/config.js, or the test fails on main too), and asks whether to push anyway",
+				"The run stopped before pushing: the first reply asks rather than reporting a push or an open PR",
+				"No commit made during the run touches src/config.js or anything under test/",
+				"Nothing was committed to main, and the feature branch exists on origin",
+				"gh.log has a `pr create` with base main",
+				"The final reply says the parsePort test still fails"
+			]
 		}
 	]
 }

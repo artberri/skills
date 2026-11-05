@@ -9,14 +9,14 @@ description: >-
   itself.
 metadata:
   internal: true
-  template-revision: "5"
+  template-revision: "6"
 ---
 
 # Ship
 
 Gets finished work shipped with as little ceremony as possible: the safe, conventional choices (branch name, what to commit, commit message, PR title and body) are made automatically, so the user goes from a dirty working tree to a shipped change in one invocation.
 
-**Operating principle:** decide and act, don't interrogate. Stop and ask only for the judgment calls the user must own: a secret inside the change, files that look unrelated to the change, a rebase conflict, or a review finding that needs a product decision.
+**Operating principle:** decide and act, don't interrogate. Stop and ask only for the judgment calls the user must own: a secret inside the change, files that look unrelated to the change, a rebase conflict, a check that fails for a reason the change didn't cause or that you couldn't fix, or a review finding that needs a product decision.
 
 <!-- CUSTOMIZE: how this project ships. Keep one of the two variants, "pull requests" or "main branch", in this paragraph and in steps 2, 4, 5, 6, 7 and 8, and delete the other. Set the base branch to the remote's default branch (`git remote show origin`). -->
 This project ships **through pull requests** against `main`. `ship` accepts `--base <branch>` to target another base. (Main-branch variant: this project ships **by committing straight to `main`**: no feature branches, no pull requests.)
@@ -57,13 +57,22 @@ Without the `commit` skill: stage by explicit path, never `git add -A`, keeping 
 <!-- CUSTOMIZE: the commit message convention. Conventional Commits unless the project states another (AGENTS.md, CONTRIBUTING.md, commitlint config) or its history clearly uses one. Add the ticket rule from step 2 if there is one. -->
 **Message convention:** Conventional Commits, `<type>(<scope>): <imperative summary>`. `type` is `feat`, `fix`, `chore`, `refactor`, `docs`, `test` and so on, inferred from the diff; `scope` is the dominant package or module, and can be left out when there isn't one.
 
-## Step 4: Bring the branch up to date
+## Step 4: Bring the branch up to date and check it
 
 **Pull requests:** `git fetch origin <base>` then `git rebase origin/<base>`.
 
 **Main branch:** `git pull --rebase origin main`.
 
 On a conflict, stop: report the conflicting files and ask how to proceed. Never guess a resolution.
+
+**Check** what is about to ship with the checks below, after the rebase so they see the commits as they will land:
+
+- **A failure the change caused:** fix it, tidy the files you touched with step 3's tidy commands, commit the fix with step 3's rules, and run the checks again. If they still fail after two fixes, stop and ask.
+- **A failure the change didn't cause** (a flaky test, something already broken on the base branch): say why you think so, and ask whether to push anyway.
+- Never skip, delete or loosen a test or a check to make it pass.
+
+<!-- CUSTOMIZE: the checks to run before pushing. Look at what CI runs (.github/workflows, .gitlab-ci.yml), the test, typecheck and build scripts (package.json, the Makefile, the task runner), and git hooks that already run checks before a push (pre-push in lefthook, husky or .git/hooks). Pick the fast ones that catch most breakage, such as the typecheck, the unit tests or the tests of the changed packages, and leave slow suites to CI. If a pre-push hook already runs them, say so instead of listing commands. If the project wants no checks before a push, delete this line and the Check paragraph above it, with its bullets. -->
+**Checks before pushing:** `npm test`.
 
 ## Step 5: Review before pushing
 
@@ -126,7 +135,7 @@ gh pr create --base "<base>" --title "<title>" --body "<body>"
 
 ## Step 9: Report
 
-Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Note what the review round (step 5 or 8) found and what happened to each finding, any file left out of the commits and why, and anything left for the user to decide.
+Give the user the result plainly: the PR URL (or, on the main branch, the pushed commits), plus a one-line recap of the branch, the commit subjects and the base. Say which checks ran in step 4 and how they ended. Note what the review round (step 5 or 8) found and what happened to each finding, any file left out of the commits and why, and anything left for the user to decide.
 
 ## Edge cases
 
