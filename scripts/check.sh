@@ -25,6 +25,17 @@ valid_name() {
 	printf '%s\n' "$1" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'
 }
 
+# The Agent Skills spec caps a skill's description at 1024 characters, and
+# every installed skill's description is loaded into every session. Counts
+# characters, not bytes, by dropping UTF-8 continuation bytes.
+check_description_length() {
+	local length
+	length="$(frontmatter_text "$1" description | LC_ALL=C tr -d '\200-\277' | wc -c | tr -d ' ')"
+	if [ "$length" -gt 1024 ]; then
+		fail "$1: description is $length characters; the limit is 1024"
+	fi
+}
+
 # Checks a skill's evals/ folder against the format scripts/evals/run.sh
 # reads. A missing evals.json is only a warning for now, while the existing
 # skills get their evals.
@@ -145,6 +156,7 @@ for bucket in portable templates drafts; do
 		fi
 
 		check_entry "$skill_dir" "$skill_md" "$name" "$bucket"
+		check_description_length "$skill_md"
 		case " $skill_names " in
 		*" $name "*) fail "$skill_dir: name '$name' is used in more than one bucket" ;;
 		esac
@@ -238,6 +250,7 @@ for skill_dir in .claude/skills/*/; do
 	fm_name="$(frontmatter_field "$skill_md" name)"
 	[ "$fm_name" = "$name" ] || fail "$skill_md: frontmatter name '$fm_name' does not match '$name'"
 	[ -n "$(frontmatter_field "$skill_md" description)" ] || fail "$skill_md: missing description"
+	check_description_length "$skill_md"
 	unsafe="$(frontmatter_unsafe_lines "$skill_md")"
 	if [ -n "$unsafe" ]; then
 		fail "$skill_md: quote these values or fold them into a >- block; strict YAML parsers (Copilot CLI) reject ': ' and ' #' in an unquoted value:$(printf '\n%s' "$unsafe")"

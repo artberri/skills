@@ -19,7 +19,16 @@ When the user asks for a portable skill, challenge that before writing it. List 
 
 - The folder name is the skill name: lowercase letters, digits and hyphens. It matches the `name` field in the `SKILL.md` frontmatter.
 - Skill names are unique across all buckets, so a template copied into a project never clashes with a globally installed portable skill.
-- `description` says what the skill does and when to use it, written so the model can tell when to reach for it.
+- `description` says what the skill does and when to use it, written so the model can tell when to reach for it. Every installed skill's description is loaded into every session, in every agent, so make it as long as the trigger evals need and no longer. Before running them, read it against these questions:
+  - Does it say what the skill is, or echo how one user asked for it?
+  - Read together with the name, does it add anything the name doesn't say?
+  - Could common words in it start the skill on unrelated tasks? A near miss that belongs to a sibling skill can name that sibling.
+  - Would someone who needs the skill use words it doesn't contain?
+  - Does an example make the skill look narrower than it is?
+  - In a list of 50 skills, could you tell at a glance what it does?
+  - Would removing any word make it worse? If not, remove the word.
+
+  `scripts/check.sh` fails a description over 1024 characters, the Agent Skills limit.
 - A user-invoked skill (one only the human should trigger) sets `disable-model-invocation: true`, and has an `agents/openai.yaml` next to its `SKILL.md` with `policy.allow_implicit_invocation: false` (plus `interface.display_name` and `interface.short_description` for Codex's skill picker), because Codex ignores the frontmatter field. `scripts/check.sh` keeps the two in sync. Copilot CLI has no equivalent, so it may still start the skill on its own.
 - Keep `SKILL.md` short. Move long reference material into sibling files that `SKILL.md` links to and loads only when needed.
 - Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.` Portable skills and templates are also listed in the top-level `README.md`'s Skills section, under the group that fits what they do, as `- **[name](./skills/<bucket>/name/SKILL.md)**`; drafts never are. `scripts/check.sh` checks both.

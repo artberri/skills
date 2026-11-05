@@ -240,7 +240,7 @@ Each skill is a folder with a `SKILL.md` and any reference files it loads on dem
 
 ## Credits
 
-The layout and conventions, and this README's problem-first structure, draw on [mattpocock/skills](https://github.com/mattpocock/skills).
+The layout and conventions, and this README's problem-first structure, draw on [mattpocock/skills](https://github.com/mattpocock/skills). The description checklist in `AGENTS.md` comes from [eferro/skill-factory](https://github.com/eferro/skill-factory).
 
 ## License
 

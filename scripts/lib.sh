@@ -15,6 +15,38 @@ frontmatter_field() {
 	' "$1"
 }
 
+# Prints the whole value of a top-level frontmatter field on one line, without
+# a trailing newline: a ">" or "|" block with its lines joined by spaces, a
+# quoted value without its quotes. Enough to measure a value, not a YAML
+# parser.
+frontmatter_text() {
+	awk -v key="$2" '
+		NR == 1 && $0 != "---" { exit }
+		NR > 1 && $0 == "---" { exit }
+		in_value && /^[ \t]*$/ { next }
+		in_value && /^[ \t]/ {
+			sub(/^[ \t]+/, "")
+			text = text (text == "" ? "" : " ") $0
+			next
+		}
+		in_value { exit }
+		NR > 1 && index($0, key ":") == 1 {
+			text = $0
+			sub("^" key ":[ \t]*", "", text)
+			if (text ~ /^[>|][-+]?[ \t]*$/) {
+				block = 1
+				text = ""
+			}
+			in_value = 1
+		}
+		END {
+			if (!block && (text ~ /^".*"$/ || text ~ /^\047.*\047$/))
+				text = substr(text, 2, length(text) - 2)
+			printf "%s", text
+		}
+	' "$1"
+}
+
 # Prints the value of a field under the frontmatter's metadata map, without
 # quotes, or nothing.
 metadata_field() {
