@@ -49,7 +49,7 @@ You correct the agent, it does better, and tomorrow's session makes the same mis
 
 **The fix** is to write it into the project, where every agent and teammate reads it:
 
-- [`capture-learnings`](./skills/portable/capture-learnings/SKILL.md) pulls the corrections, gotchas and patterns out of a conversation, checks them against what's already documented, and writes the ones you approve into `AGENTS.md`, a skill's references or the review docs.
+- [`capture-learnings`](./skills/portable/capture-learnings/SKILL.md) pulls the corrections, gotchas and patterns out of a conversation, checks them against what's already documented and what the code does, and writes the ones you approve into `AGENTS.md`, a skill's references or the review docs. It also corrects the docs the conversation proved wrong.
 - [`retro`](./skills/portable/retro/SKILL.md) reads the last day or week of Claude Code, Codex and Copilot CLI sessions and proposes three to five concrete changes: a new skill, a rule, a workflow change.
 
 ### Too much change to review
@@ -240,7 +240,7 @@ Each skill is a folder with a `SKILL.md` and any reference files it loads on dem
 
 ## Credits
 
-The layout and conventions, and this README's problem-first structure, draw on [mattpocock/skills](https://github.com/mattpocock/skills). The description checklist in `AGENTS.md` comes from [eferro/skill-factory](https://github.com/eferro/skill-factory).
+The layout and conventions, and this README's problem-first structure, draw on [mattpocock/skills](https://github.com/mattpocock/skills). The description checklist in `AGENTS.md` comes from [eferro/skill-factory](https://github.com/eferro/skill-factory), and two checks in `capture-learnings`, testing a convention against the code and correcting docs proved wrong, from Emilio Carrión's [`compound`](https://gist.github.com/EmilioCarrion/efdfa5487963651bf65fc491f30fbeb4) skill, which I found through it.
 
 ## License
 

@@ -24,6 +24,7 @@ Scan the conversation for:
 - **Gotchas:** unexpected behaviour, subtle bugs, or non-obvious constraints found during the work.
 - **Patterns:** approaches that worked well and aren't documented yet.
 - **Missed skills:** skills that were available and should have been used but weren't.
+- **Docs proved wrong:** a doc the work read or relied on that the conversation showed is now wrong: a command that no longer works, a rule the code no longer follows, a claim the user corrected.
 - **New skill candidates:** multi-step procedures you carried out that would make a good skill. A candidate qualifies only if **all** apply:
   - It took three or more distinct steps (not a single command or one-off edit).
   - It has clear inputs the user would pass next time (an issue ID, a file path, a URL).
@@ -45,13 +46,15 @@ This step prevents duplicates and puts each learning where it will be found. For
 
 1. **Read the target file.** Don't go from memory.
 2. **Search for existing coverage** in the target file and the instruction file, by keywords related to the learning.
-3. **Classify it:**
+3. **For a pattern or convention, check the code too.** Search the module, or the related ones, for how consistently it's already followed. If it shows up only in this conversation's change, it isn't a convention yet: ask the user whether it's a deliberate new one or a one-off before proposing it. A one-off written down as a convention misleads every later decision.
+4. **Classify it:**
    - **skip:** the rule or pattern is already documented. Quote the existing text. But if it exists and was still broken in this conversation, ask why: it may be buried, worded so it isn't found, or missing from where the work happened. If the docs failed to prevent the mistake, mark it **discoverability** instead and propose one of:
      - stronger trigger words or a more prominent place in the instruction file, so the rule is found earlier;
      - a cross-reference from where you were working to where the rule lives;
      - a better `description` for the skill that should have been used, with the skill-creator skill if it's available.
    - **amend:** the idea is documented but misses the nuance you found. Name the gap.
    - **add:** genuinely new.
+   - **correct:** a doc says something this conversation showed is wrong. Quote it and propose the replacement. This covers any doc you read along the way, not only the targets of the other candidates. Only what is wrong: not the style or wording of entries that are still right.
 
 ## 3. Propose
 
@@ -64,9 +67,10 @@ Present every candidate in a table, with its status, so the user can see your wo
 | 2 | Use skill X before Y work | skill X description | skip: already in AGENTS.md |
 | 3 | Check reference X before doing Y | AGENTS.md → Checks | discoverability: rule exists, but its wording misses common task terms |
 | 4 | Bundle a multi-step procedure | new skill | new-skill: 4 steps, input an issue ID, output a resolved issue |
+| 5 | Tests run with `make check` now | AGENTS.md → Checks | correct: it still says `make test` |
 ```
 
-For **add** and **amend**, show the exact text you'll insert and where (the section, and after which line or paragraph), so the user approves precise edits, not intentions.
+For **add**, **amend** and **correct**, show the exact text you'll insert and where (the section, and after which line or paragraph), so the user approves precise edits, not intentions.
 
 For **new-skill**, show the proposed name, a one-line description of what it does and when it triggers, the steps it would automate, and its inputs and outputs. Don't create the skill yourself: the user decides, then uses the skill-creator skill (or asks you to).
 
