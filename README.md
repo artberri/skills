@@ -205,7 +205,7 @@ All three plugin installs load every portable skill. A few depend on the agent:
 
 ## Contributing
 
-[AGENTS.md](./AGENTS.md) has the repo's layout, the rules for writing and changing skills, how to run the checks and evals, and how to load a checkout of the plugin in Claude Code.
+[CONTRIBUTING.md](./CONTRIBUTING.md) covers setting up, trying a change in each agent, and sending it. Please follow the [code of conduct](./CODE_OF_CONDUCT.md).
 
 ## Credits
 
