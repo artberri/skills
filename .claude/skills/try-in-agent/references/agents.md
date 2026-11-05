@@ -80,7 +80,9 @@ Copilot's `hook.start` events log its own format, not what the hook receives. To
 
 A plugin hook is off until its `ARTBERRI_*` variable is `1`: set it on the session command.
 
-Hooks haven't been tried in Codex.
+Codex doesn't run a plugin's hooks (tested with 0.166.0): `codex features list` shows `plugin_hooks` as `removed`, and a session with `ARTBERRI_GIT_GUARDRAILS=1` ran `git add -A` with no hook event in its log or in `logs_2.sqlite`. Its own hooks (`hooks` is `stable`) are untested; they'd need a trust step (Codex stores a `trusted_hash` per hook) and a matcher for its shell tool, which the model calls as `exec_command`, not `Bash`.
+
+`-s workspace-write` makes `.git` read-only, so `git add` and `git commit` fail there with `index.lock: Operation not permitted`. A failure like that comes from Codex's sandbox, not a hook.
 
 ## Updates
 

@@ -1,6 +1,6 @@
 # Git guardrails hook
 
-`git-guardrails.sh` is an optional `PreToolUse` hook for Claude Code and GitHub Copilot CLI. It turns the git rules the skills state in prose into hard denials, so they hold even when the model slips. It blocks a Bash command that:
+`git-guardrails.sh` is an optional `PreToolUse` hook for Claude Code and GitHub Copilot CLI. Codex doesn't run a plugin's hooks, so it doesn't apply there. It turns the git rules the skills state in prose into hard denials, so they hold even when the model slips. It blocks a Bash command that:
 
 - stages everything: `git add -A`, `--all`, `.`, `:/` or `*`. Stage by explicit path instead.
 - force-pushes: `git push --force`, `-f` or a `+refspec`. `--force-with-lease` is allowed.

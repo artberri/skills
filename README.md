@@ -71,7 +71,7 @@ All three plugin installs load every portable skill. A few depend on the agent:
 - `ocr-review` runs in Claude Code and Copilot CLI, which load its reviewer agent; Codex can't start named agents.
 - `retro` reads Claude Code, Codex and Copilot CLI sessions.
 - `setup-ocr` and `setup-review-docs` only run when you ask for them in Claude Code and Codex. Copilot CLI has no way to keep its model from starting a skill on its own.
-- The optional hooks run in Claude Code and Copilot CLI, which both read them from the plugin. They haven't been tried in Codex.
+- The optional hooks run in Claude Code and Copilot CLI, which both read them from the plugin. Codex doesn't run a plugin's hooks (tested with Codex 0.166.0).
 
 ### From a checkout (Claude Code)
 
