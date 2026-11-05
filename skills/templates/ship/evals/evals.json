@@ -36,9 +36,10 @@
 			"id": 3,
 			"fixture": "already-shipped",
 			"prompt": "ship it",
-			"expected_output": "Clean tree, already pushed, PR open: confirms and returns the existing PR without creating anything.",
+			"expected_output": "Clean tree, already pushed, PR open, main moved on since: confirms and returns the existing PR without rebasing, pushing or creating anything.",
 			"expectations": [
-				"No new commit was created: fix-timezone-logging still has the single fix commit on top of main",
+				"No new commit was created: fix-timezone-logging still has its single fix commit",
+				"fix-timezone-logging was not rebased: the local branch points at the same commit as origin/fix-timezone-logging, which still sits on the older main commit, not on 'docs: say how to run the tests'",
 				"No new branch was created",
 				"gh.log has no `pr create` call",
 				"The final reply gives https://github.com/example/app/pull/7 as the PR URL"

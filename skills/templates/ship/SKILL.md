@@ -25,9 +25,11 @@ This project ships **through pull requests** against `main`. `ship` accepts `--b
 
 ```sh
 git branch --show-current
-git status --short
+git status --short --branch
 git log --oneline -5
 ```
+
+If the tree is clean and nothing is unpushed, the work is already shipped, or there is none: go to the edge cases at the end instead of the steps below.
 
 ## Step 2: Branch
 
@@ -139,7 +141,7 @@ Give the user the result plainly: the PR URL (or, on the main branch, the pushed
 
 ## Edge cases
 
-- **Clean tree, already pushed.** Nothing to do but confirm: return the existing PR URL or the last pushed commit.
+- **Clean tree, already pushed.** Nothing to do but confirm: return the existing PR URL or the last pushed commit. Don't rebase, check or push it again: updating a shipped branch is a separate request. If a pull-request branch has no PR yet, open it (step 7) and carry on from there.
 - **Clean tree on the base branch, nothing unpushed.** There's nothing to ship. Say so rather than creating an empty branch.
 - **`gh` not authenticated.** Surface the error and suggest `gh auth login`. Never invent a PR URL.
 - **A review never arrived.** Deliver the result with the review noted as pending. Never imply a change is clean because no review came in.
