@@ -15,6 +15,34 @@ When the user asks for a portable skill, challenge that before writing it. List 
 - If everything can be found out, say so in one line and carry on: portable is right.
 - If something would be hard-coded or guessed, recommend a template instead. Explain why, name the parts that would become `CUSTOMIZE` markers, and wait for the user to decide. They may still choose portable; then make those parts discoverable at run time, or say plainly in the skill what it assumes.
 
+## Layout
+
+```
+.claude-plugin/
+	plugin.json                  the artberri-skills plugin: portable skills and agents
+	marketplace.json             the artberri-skills marketplace, for Codex and Copilot CLI
+.claude/skills/                skills for working on this repo, never shipped
+skills/
+	portable/<skill>/SKILL.md    use as-is
+	templates/<skill>/SKILL.md   copy into a project, then adapt
+	drafts/<skill>/SKILL.md      work in progress
+agents/
+	portable/<agent>.md          same buckets, one file per agent
+	templates/<agent>.md
+	drafts/<agent>.md
+hooks/
+	git-guardrails/              optional hook that blocks forbidden git commands
+docs/
+	TODO.md                      work left for later
+scripts/
+	add-template.sh              copy a template (and its agents) into a project, without adapt-skill
+	check.sh                     validate every skill, agent and README
+	lib.sh                       helpers shared by the scripts
+	evals/run.sh                 run a skill's evals in throwaway repositories and grade them
+```
+
+Each skill is a folder with a `SKILL.md` and any reference files it loads on demand, plus its evals in `evals/`.
+
 ## Skill rules
 
 - The folder name is the skill name: lowercase letters, digits and hyphens. It matches the `name` field in the `SKILL.md` frontmatter.
@@ -66,6 +94,17 @@ When the user asks for a portable skill, challenge that before writing it. List 
 - Copilot CLI runs the hooks in `plugin.json` too, and fills `${CLAUDE_PLUGIN_ROOT}`. Its input uses Claude Code's names (`tool_name: "Bash"`, `tool_input.command`), except that a `PostToolUse` hook gets the command's output in `tool_result.text_result_for_llm` instead of `tool_response.stdout`. Copilot reads `additionalContext` at the top level of a hook's output, not under `hookSpecificOutput`; a `PreToolUse` deny in Claude Code's shape works in both. A hook that adds context answers each agent in its own shape, as `ocr-review-offer.sh` does.
 - The manifest's `version` (`x.y.z`) decides when installs update: Claude Code, Codex and Copilot CLI reinstall the plugin only when it changes. Bump it in the same push as any change to what the plugin ships (the manifest, portable skills and agents, `hooks/`; evals and test data don't count): patch for fixes and wording, minor for new skills or behaviour, major when something users rely on goes away. `scripts/check.sh` fails when shipped files differ from `origin/main` (or `ARTBERRI_VERSION_BASE`, which CI sets) and the version doesn't. It compares with `git diff`, which skips untracked files, so run `git add -N` on new files before the check to count them.
 - After changing the manifest, run `claude plugin validate .`. Warnings about the bucket `README.md` files lacking frontmatter are expected: the validator reads every `.md` under `agents/`, while Claude Code only loads what the manifest lists.
+- To load the plugin from a checkout in Claude Code, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
+
+  ```json
+  {
+  	"env": {
+  		"CLAUDE_CODE_PLUGIN_DIRS": "/path/to/skills"
+  	}
+  }
+  ```
+
+  To try a change in Codex or Copilot CLI, use `try-in-agent`.
 
 ## Writing skills with skill-creator
 

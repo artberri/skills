@@ -13,14 +13,76 @@ They come in two kinds:
 - **Portable** skills work as they are, in any project, because everything they depend on can be found out at run time. You install them once.
 - **Templates** depend on how a project works: its test command, where it keeps plans, whether it ships through pull requests or straight to `main`. You install one into a project, it gets filled in from what the project already has, and from then on the project owns it.
 
-To try them in Claude Code:
+## Installation
+
+The plugin ships the portable skills and the agents they use, and installs update when its version changes. Templates aren't part of it: you install each one into a project (step 2). Pick one route per agent, because the plugin and skills.sh in the same agent give you every skill twice.
+
+### 1. Get the skills
+
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 ```sh
 claude plugin marketplace add artberri/claude-plugins
 claude plugin install artberri-skills@artberri
 ```
 
-[Installing](#installing-the-portable-skills-and-agents) covers Codex, Copilot CLI and other agents.
+The [artberri marketplace](https://github.com/artberri/claude-plugins) also lists my other Claude Code plugins. Update with `claude plugin update artberri-skills@artberri`.
+
+</details>
+
+<details>
+<summary><strong>Codex</strong></summary>
+
+```sh
+codex plugin marketplace add artberri/skills
+codex plugin add artberri-skills@artberri-skills
+```
+
+To update, run `codex plugin add artberri-skills@artberri-skills` again. (`codex plugin marketplace upgrade` only refreshes the marketplace, not the plugin.)
+
+</details>
+
+<details>
+<summary><strong>GitHub Copilot CLI</strong></summary>
+
+```sh
+copilot plugin marketplace add artberri/skills
+copilot plugin install artberri-skills@artberri-skills
+```
+
+Update with `copilot plugin update artberri-skills@artberri-skills`.
+
+</details>
+
+<details>
+<summary><strong>Other agents</strong> (Gemini CLI, Cursor, OpenCode...)</summary>
+
+[skills.sh](https://www.skills.sh/) copies the portable skills into a project, or with `-g` into your home folder:
+
+```sh
+npx skills add artberri/skills
+```
+
+Update with `npx skills update`, and run `add` again to get skills added since. This route installs skills only, with no agents or hooks, so `ocr-review` (which needs its reviewer agent) won't run.
+
+</details>
+
+Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri-skills:commit`. Agents always carry the prefix: `artberri-skills:ocr-reviewer`.
+
+The plugin also registers optional hooks, all off until you turn them on with an environment variable. One is [git-guardrails](./hooks/git-guardrails/README.md), which blocks the git commands the skills forbid: staging everything, force-pushing, and skipping signing or hooks. [What works where](#what-works-where) says which agents run them.
+
+### 2. Adapt a template in a project
+
+From inside the project, with the plugin or the `adapt-skill` skill installed, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). It installs the template into the folder where the project keeps its skills (`.claude/skills/`, `.agents/skills/`, `.github/skills/` or `.gemini/skills/`), and, for Claude Code, any template agents it uses into `.claude/agents/`. It fills in every `CUSTOMIZE` marker from what it finds in the project and asks you about anything it can't work out. Run it again later to refresh the skill when the project's conventions or scripts change, or the template improves: it keeps your own edits.
+
+Without an agent that can run `adapt-skill`, copy the template with the script and adapt it by hand:
+
+```sh
+scripts/add-template.sh <skill> path/to/project
+```
+
+It picks the skills folder the way `adapt-skill` does: the one the project already keeps skills in, otherwise `.agents/skills/` for a project with an `AGENTS.md` and no `CLAUDE.md`, otherwise `.claude/skills/`. Choose another with `--dir`, for example `--dir .github/skills` for Copilot. Template agents are copied only into a Claude Code project's `.claude/agents/`.
 
 ## Why these skills exist
 
@@ -132,47 +194,6 @@ Templates are marked _template_.
 
 Some skills hand work to **agents** (subagents with their own prompt, tools and model). They're split into the same [portable](./agents/portable/README.md) and [template](./agents/templates/README.md) kinds, and adding a template brings in its template agents too. [Drafts](./skills/drafts/README.md) are skills in progress and are never installed.
 
-## Installing the portable skills and agents
-
-The repo is a plugin named `artberri-skills` that ships the portable skills and agents. Templates and drafts are not part of it. Claude Code installs it from the [artberri marketplace](https://github.com/artberri/claude-plugins), which also lists my other Claude Code plugins. Codex and GitHub Copilot CLI install it from this repo, which is its own marketplace, also named `artberri-skills`. A release reaches installs when the plugin's version changes, through each agent's update command below.
-
-### Claude Code
-
-```sh
-claude plugin marketplace add artberri/claude-plugins
-claude plugin install artberri-skills@artberri
-```
-
-Update with `claude plugin update artberri-skills@artberri`.
-
-### Codex
-
-```sh
-codex plugin marketplace add artberri/skills
-codex plugin add artberri-skills@artberri-skills
-```
-
-To update, run `codex plugin add artberri-skills@artberri-skills` again. (`codex plugin marketplace upgrade` only refreshes the marketplace, not the plugin.)
-
-### GitHub Copilot CLI
-
-```sh
-copilot plugin marketplace add artberri/skills
-copilot plugin install artberri-skills@artberri-skills
-```
-
-Update with `copilot plugin update artberri-skills@artberri-skills`.
-
-### Others (Gemini CLI, Cursor, OpenCode...)
-
-[skills.sh](https://www.skills.sh/) copies the portable skills into a project, or with `-g` into your home folder:
-
-```sh
-npx skills add artberri/skills
-```
-
-Update with `npx skills update`, and run `add` again to get skills added since. This route installs skills only: no agents or hooks, so `ocr-review` (which needs its reviewer agent) won't run.
-
 ### What works where
 
 All three plugin installs load every portable skill. A few depend on the agent:
@@ -182,63 +203,9 @@ All three plugin installs load every portable skill. A few depend on the agent:
 - `setup-ocr` and `setup-review-docs` only run when you ask for them in Claude Code and Codex. Copilot CLI has no way to keep its model from starting a skill on its own.
 - The optional hooks run in Claude Code and Copilot CLI, which both read them from the plugin. Codex doesn't run a plugin's hooks (tested with Codex 0.166.0).
 
-### Hooks
+## Contributing
 
-The plugin also registers optional hooks, all off until you turn them on with an environment variable. One is [git-guardrails](./hooks/git-guardrails/README.md), which blocks the git commands the skills forbid: staging everything, force-pushing, and skipping signing or hooks.
-
-Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri-skills:commit`. Agents always carry the prefix: `artberri-skills:ocr-reviewer`.
-
-### From a checkout (Claude Code)
-
-To load the plugin from a checkout, so edits take effect in the next session, add the checkout's path to `CLAUDE_CODE_PLUGIN_DIRS` in your `settings.json` (separate several folders with `:`):
-
-```json
-{
-	"env": {
-		"CLAUDE_CODE_PLUGIN_DIRS": "/path/to/skills"
-	}
-}
-```
-
-## Using a template in a project
-
-From inside the project, with the plugin or the `adapt-skill` skill installed, run [`/adapt-skill <skill>`](./skills/portable/adapt-skill/SKILL.md). It installs the template into the folder where the project keeps its skills (`.claude/skills/`, `.agents/skills/`, `.github/skills/` or `.gemini/skills/`), and, for Claude Code, any template agents it uses into `.claude/agents/`. It fills in every `CUSTOMIZE` marker from what it finds in the project and asks you about anything it can't work out. Run it again later to refresh the skill when the project's conventions or scripts change, or the template improves: it keeps your own edits.
-
-Without an agent that can run `adapt-skill`, copy the template with the script and adapt it by hand:
-
-```sh
-scripts/add-template.sh <skill> path/to/project
-```
-
-It picks the skills folder the way `adapt-skill` does: the one the project already keeps skills in, otherwise `.agents/skills/` for a project with an `AGENTS.md` and no `CLAUDE.md`, otherwise `.claude/skills/`. Choose another with `--dir`, for example `--dir .github/skills` for Copilot. Template agents are copied only into a Claude Code project's `.claude/agents/`.
-
-## Layout
-
-```
-.claude-plugin/
-	plugin.json                  the artberri-skills plugin: portable skills and agents
-	marketplace.json             the artberri-skills marketplace, for Codex and Copilot CLI
-.claude/skills/                skills for working on this repo, never shipped
-skills/
-	portable/<skill>/SKILL.md    use as-is
-	templates/<skill>/SKILL.md   copy into a project, then adapt
-	drafts/<skill>/SKILL.md      work in progress
-agents/
-	portable/<agent>.md          same buckets, one file per agent
-	templates/<agent>.md
-	drafts/<agent>.md
-hooks/
-	git-guardrails/              optional hook that blocks forbidden git commands
-docs/
-	TODO.md                      work left for later
-scripts/
-	add-template.sh              copy a template (and its agents) into a project, without adapt-skill
-	check.sh                     validate every skill, agent and README
-	lib.sh                       helpers shared by the scripts
-	evals/run.sh                 run a skill's evals in throwaway repositories and grade them
-```
-
-Each skill is a folder with a `SKILL.md` and any reference files it loads on demand, plus its evals in `evals/`. [AGENTS.md](./AGENTS.md) has the rules for writing and changing them.
+[AGENTS.md](./AGENTS.md) has the repo's layout, the rules for writing and changing skills, how to run the checks and evals, and how to load a checkout of the plugin in Claude Code.
 
 ## Credits
 
