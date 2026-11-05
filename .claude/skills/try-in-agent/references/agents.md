@@ -1,6 +1,6 @@
 # Codex and Copilot CLI in a sandbox
 
-What each agent does, as tested in throwaway configs. Every command assumes the sandbox's exports are loaded (`eval "$(<skill-dir>/scripts/sandbox.sh <folder>)"`) in the same shell command.
+What each agent does, as tested in throwaway configs. Every command assumes it starts by loading the sandbox's exports, as `SKILL.md` shows (`exports="$(<skill-dir>/scripts/sandbox.sh <folder>)" || exit 1; eval "$exports"`).
 
 ## Contents
 

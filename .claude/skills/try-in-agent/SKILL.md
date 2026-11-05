@@ -27,10 +27,10 @@ Decide too whether to test what's published on GitHub or the local, unpushed cha
 ## 2. Make the sandbox
 
 ```sh
-eval "$(<skill-dir>/scripts/sandbox.sh <new-folder>)"
+exports="$(<skill-dir>/scripts/sandbox.sh <folder>)" || exit 1; eval "$exports"
 ```
 
-Put `<new-folder>` in your scratchpad or a temporary folder, never in the repo or the user's home. The script prints exports for `HOME`, `CODEX_HOME`, `XDG_*` and npm's cache, so both agents keep everything there and the user's real config is never touched. Load them in every command that runs an agent: each Bash call starts fresh.
+Put `<folder>` in your scratchpad or a temporary folder, never in the repo or the user's home. The first run makes it, and later runs on the same folder print the same exports: `HOME`, `CODEX_HOME`, `XDG_*` and npm's cache, so both agents keep everything there and the user's real config is never touched. Start every command that runs an agent with this line, because each Bash call starts fresh. Keep the `|| exit 1`: when the script fails, a bare `eval "$(…)"` carries on, and the agent runs in the user's real home.
 
 ## 3. Install and probe
 
