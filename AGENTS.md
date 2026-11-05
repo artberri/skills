@@ -107,6 +107,8 @@ Guidance for adapting a template that the markers alone can't carry (which quest
 
 Run `scripts/check.sh` after adding, renaming or moving a skill or agent. It validates frontmatter, marker rules, name uniqueness, the agents each skill uses, and the bucket READMEs. CI runs it, plus ShellCheck and shfmt on every shell script, including those inside skill folders.
 
+Work the user defers goes in `docs/TODO.md`, and comes out in the commit that finishes it.
+
 ## Style
 
 - Tabs for indentation, except YAML.

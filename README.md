@@ -103,6 +103,8 @@ agents/
 	drafts/<agent>.md
 hooks/
 	git-guardrails/              optional hook that blocks forbidden git commands
+docs/
+	TODO.md                      work left for later
 scripts/
 	add-template.sh              copy a template (and its agents) into a project, without adapt-skill
 	check.sh                     validate every skill, agent and README
