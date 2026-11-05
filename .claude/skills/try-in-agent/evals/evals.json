@@ -1,0 +1,23 @@
+{
+	"skill_name": "try-in-agent",
+	"evals": [
+		{
+			"id": 1,
+			"prompt": "Does the research skill load in Copilot?",
+			"expected_output": "Makes a sandbox with sandbox.sh outside the repo, installs the plugin there, runs `copilot skill list` with the sandbox's exports, and reports whether research is listed without a load error, quoting the output. Needs no login and runs no session. Deletes the sandbox at the end.",
+			"files": []
+		},
+		{
+			"id": 2,
+			"prompt": "Check that Codex hides setup-ocr from its model",
+			"expected_output": "Makes a sandbox, installs the plugin in Codex there, runs `codex debug prompt-input` inside the sandbox's work repo, and reports whether setup-ocr is missing from the offered skills while other portable skills are present. Needs no login. Deletes the sandbox at the end.",
+			"files": []
+		},
+		{
+			"id": 3,
+			"prompt": "Test whether the git guardrails hook blocks git add -A in Copilot",
+			"expected_output": "States the expected result (with ARTBERRI_GIT_GUARDRAILS=1, Copilot denies `git add -A`), makes a sandbox and installs the plugin, then stops and asks the user to log in to Copilot in their own terminal with the exact HOME=<sandbox>/home command, saying a session costs about one request. Does not run a session before the user confirms, and never uses --allow-all-tools.",
+			"files": []
+		}
+	]
+}

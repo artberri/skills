@@ -6,6 +6,8 @@ This repo holds agent skills. Each skill is a folder under one of three buckets:
 - `skills/templates/`: installed into a project and adapted (and later refreshed) by the `adapt-skill` skill, or copied by `scripts/add-template.sh` for agents other than Claude Code. Always contains at least one `CUSTOMIZE` marker.
 - `skills/drafts/`: work in progress. Not installed and not listed outside its own README.
 
+`.claude/skills/` holds skills for working on this repo itself, which the plugin never ships. They set `metadata.internal: true`, so the `skills` CLI skips them too, and their names can't clash with a skill under `skills/`; `scripts/check.sh` checks both. To find out whether a change works in Codex or Copilot CLI, use `try-in-agent` there: it holds what we know about each agent.
+
 When you are unsure which bucket a skill belongs in, ask: would it be wrong in some project if nobody edited it? If so, it is a template.
 
 When the user asks for a portable skill, challenge that before writing it. List what the skill depends on that varies between projects: commands, paths, tools, services, conventions, review or release processes. For each, decide whether the skill can find it out reliably at run time (from `AGENTS.md` or `CLAUDE.md`, CI config, package manifests, `git log`, or a config file a `setup-*` skill writes), or would have to hard-code or guess it.

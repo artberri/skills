@@ -210,6 +210,39 @@ for bucket in portable templates drafts; do
 	done
 done
 
+# .claude/skills/ holds skills for working on this repo, never shipped. The
+# skills CLI finds them too, so they must be internal.
+for skill_dir in .claude/skills/*/; do
+	[ -d "$skill_dir" ] || continue
+	skill_dir="${skill_dir%/}"
+	name="$(basename "$skill_dir")"
+	skill_md="$skill_dir/SKILL.md"
+	case "$name" in
+	*-workspace) continue ;;
+	esac
+	if [ ! -f "$skill_md" ]; then
+		fail "$skill_dir has no SKILL.md"
+		continue
+	fi
+	valid_name "$name" || fail "$skill_dir: name must be lowercase letters, digits and hyphens"
+	fm_name="$(frontmatter_field "$skill_md" name)"
+	[ "$fm_name" = "$name" ] || fail "$skill_md: frontmatter name '$fm_name' does not match '$name'"
+	[ -n "$(frontmatter_field "$skill_md" description)" ] || fail "$skill_md: missing description"
+	unsafe="$(frontmatter_unsafe_lines "$skill_md")"
+	if [ -n "$unsafe" ]; then
+		fail "$skill_md: quote these values or fold them into a >- block; strict YAML parsers (Copilot CLI) reject ': ' and ' #' in an unquoted value:$(printf '\n%s' "$unsafe")"
+	fi
+	if [ "$(metadata_field "$skill_md" internal)" != true ]; then
+		fail "$skill_md: repo skills need metadata.internal: true, to hide them from the skills CLI"
+	fi
+	if grep -rlE --include='*.md' '\$\{?CLAUDE_SKILL_DIR' "$skill_dir" >/dev/null; then
+		fail "$skill_dir: use <skill-dir>, not CLAUDE_SKILL_DIR, which only Claude Code fills in"
+	fi
+	case " $skill_names " in
+	*" $name "*) fail "$skill_dir: name '$name' is already used by a skill in skills/" ;;
+	esac
+done
+
 # The plugin loads skills/portable/ as a folder, but its agents one by one,
 # and Claude Code also loads any .md file at the top of agents/ on its own.
 manifest=.claude-plugin/plugin.json
