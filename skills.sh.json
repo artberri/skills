@@ -1,0 +1,31 @@
+{
+	"$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+	"notGrouped": "bottom",
+	"groupings": [
+		{
+			"title": "Plan",
+			"description": "Find out what adopting a library, tool or architectural change would take, before planning it.",
+			"skills": ["research"]
+		},
+		{
+			"title": "Build and ship",
+			"description": "Turn finished work into small, focused, signed commits in the repo's style.",
+			"skills": ["commit"]
+		},
+		{
+			"title": "Review",
+			"description": "Get changes reviewed by someone who didn't write them, before and after the pull request, and act on what the reviewers find.",
+			"skills": ["adversarial-review", "ocr-review", "address-pr-comments", "setup-review-docs", "setup-ocr"]
+		},
+		{
+			"title": "Learn",
+			"description": "Write down what a session taught, so the next one doesn't repeat its mistakes.",
+			"skills": ["capture-learnings", "retro"]
+		},
+		{
+			"title": "Templates",
+			"description": "Install one of this repo's skill templates into a project, filled in from what the project already has.",
+			"skills": ["adapt-skill"]
+		}
+	]
+}

@@ -34,6 +34,7 @@ agents/
 	drafts/<agent>.md
 hooks/
 	git-guardrails/              optional hook that blocks forbidden git commands
+skills.sh.json                 groups the portable skills on the repo's skills.sh page
 docs/
 	TODO.md                      work left for later
 scripts/
@@ -61,7 +62,7 @@ Each skill is a folder with a `SKILL.md` and any reference files it loads on dem
   `scripts/check.sh` fails a description over 1024 characters, the Agent Skills limit.
 - A user-invoked skill (one only the human should trigger) sets `disable-model-invocation: true`, and has an `agents/openai.yaml` next to its `SKILL.md` with `policy.allow_implicit_invocation: false` (plus `interface.display_name` and `interface.short_description` for Codex's skill picker), because Codex ignores the frontmatter field. `scripts/check.sh` keeps the two in sync. Copilot CLI has no equivalent, so it may still start the skill on its own.
 - Keep `SKILL.md` short. Move long reference material into sibling files that `SKILL.md` links to and loads only when needed.
-- Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.` Portable skills and templates are also listed in the top-level `README.md`'s Skills section, under the group that fits what they do, as `- **[name](./skills/<bucket>/name/SKILL.md)**`; drafts never are. `scripts/check.sh` checks both.
+- Every skill is listed in its bucket's `README.md` as `- **[name](./name/SKILL.md)**: one-line description.` Portable skills and templates are also listed in the top-level `README.md`'s Skills section, under the group that fits what they do, as `- **[name](./skills/<bucket>/name/SKILL.md)**`; drafts never are. Portable skills, the only ones the `skills` CLI installs, also go in one group of `skills.sh.json`, which arranges the repo's page on [skills.sh](https://skills.sh/artberri/skills); keep its groups the README's. `scripts/check.sh` checks all three.
 - Templates and drafts set `metadata.internal: true`; portable skills don't. The `skills` CLI (skills.sh) finds every `SKILL.md` under `skills/`, and this hides the ones it shouldn't install: a template copied without `adapt-skill` keeps its markers, and `skills update` would overwrite an adapted copy. Moving a draft to `portable/` means removing the field. Adapted copies in a project keep it, which is harmless: only the `skills` CLI reads it.
 - Skills also run in agents other than Claude Code (Codex, Copilot, Gemini CLI...), so a command that runs a file in the skill's folder writes it as `<skill-dir>/scripts/...` and says once that `<skill-dir>` is the folder the `SKILL.md` is in. Not `${CLAUDE_SKILL_DIR}`: only Claude Code fills it in. `scripts/check.sh` rejects it.
 - Frontmatter must parse as strict YAML, which Copilot CLI uses: a value with `: ` or ` #` in it is quoted or folded into a `>-` block. Claude Code accepts it unquoted, so only `scripts/check.sh` will catch it.

@@ -315,6 +315,22 @@ else
 		"$marketplace" >/dev/null; then
 		fail "$marketplace: list one plugin, named '$plugin_name' as in $manifest, with source \"./\""
 	fi
+
+	# skills.sh arranges the repo's page by this file's groups. Its CLI
+	# installs only the portable skills, so the groups list each of them
+	# once, and nothing else.
+	skills_sh=skills.sh.json
+	portable_skills="$(for dir in skills/portable/*/; do
+		case "$dir" in
+		*-workspace/) continue ;;
+		esac
+		basename "$dir"
+	done | sort)"
+	if ! jq -e . "$skills_sh" >/dev/null 2>&1; then
+		fail "$skills_sh is missing or not valid JSON"
+	elif [ "$(jq -r '.groupings // [] | .[].skills // [] | .[]' "$skills_sh" | sort)" != "$portable_skills" ]; then
+		fail "$skills_sh: its groupings must list each portable skill once, and nothing else:$(printf '\n%s' "$portable_skills")"
+	fi
 fi
 
 # ocr-review, its agent and setup-ocr each run OCR through npx, pinned. A
