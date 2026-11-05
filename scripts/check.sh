@@ -150,6 +150,16 @@ for bucket in portable templates drafts; do
 		esac
 		skill_names="$skill_names $name"
 
+		# The top-level README lists every installable skill by what it's for,
+		# and never a draft.
+		if [ "$bucket" = drafts ]; then
+			if grep -qF "](./$skill_dir/SKILL.md)" README.md; then
+				fail "README.md links the draft $name; drafts are listed only in their bucket README"
+			fi
+		elif ! grep -qF -- "- **[$name](./$skill_dir/SKILL.md)**" README.md; then
+			fail "README.md does not list $name; add '- **[$name](./$skill_dir/SKILL.md)**' to the Skills section"
+		fi
+
 		# adapt-skill compares it with a project's copy to offer a refresh.
 		if [ "$bucket" = templates ] &&
 			! metadata_field "$skill_md" template-revision | grep -Eq '^[0-9]+$'; then
