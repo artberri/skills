@@ -52,12 +52,13 @@ When the user asks for a portable skill, challenge that before writing it. List 
 
   Names are space-separated. `scripts/check.sh` verifies each one exists and fits: a portable skill can only use portable agents, and a template skill can use portable or template agents. `adapt-skill` (or `scripts/add-template.sh`) installs the template agents into the project together with the skill.
 - Tell the agent to start with a fresh context, and give it everything it needs in the prompt: it does not see the conversation. In Codex that has to be asked for: `spawn_agent` with `fork_turns: "none"`, because its default hands the subagent the whole conversation.
-- When a plugin loads the agent, its name carries the plugin prefix (`artberri:ocr-reviewer`). Skills tell the model to use the name its Agent tool lists, never a hard-coded `subagent_type`.
+- When a plugin loads the agent, its name carries the plugin prefix (`artberri-skills:ocr-reviewer`). Skills tell the model to use the name its Agent tool lists, never a hard-coded `subagent_type`.
 
 ## The plugin
 
-`.claude-plugin/plugin.json` makes the repo the `artberri` Claude Code plugin, which ships the portable skills and agents.
+`.claude-plugin/plugin.json` makes the repo the `artberri-skills` plugin, which ships the portable skills and agents.
 
+- Two marketplaces list it. This repo's own `.claude-plugin/marketplace.json`, named `artberri-skills`, lists it at the root (`"source": "./"`): Codex and Copilot CLI add the repo itself and install `artberri-skills@artberri-skills`. Claude Code installs `artberri-skills@artberri` from [artberri/claude-plugins](https://github.com/artberri/claude-plugins), which also lists the author's other Claude Code plugins. The plugin's name has to match in `plugin.json`, `marketplace.json` and `claude-plugins`; `scripts/check.sh` compares the first two, and a rename means changing `claude-plugins` too, after this repo's change is pushed.
 - Skills come in as a folder (`./skills/portable/`), so a new portable skill needs no manifest change.
 - Agents must be listed one by one: add every portable agent to `agents`, and nothing else. `scripts/check.sh` enforces this, and rejects `.md` files at the top of `agents/`, which Claude Code would load on its own.
 - A hook that belongs to one skill lives in that skill's `hooks/` folder. A hook that applies whichever skill runs, like the git guardrails, lives in `hooks/<name>/` at the top of the repo, with a `README.md` saying what it does and how to turn it on.

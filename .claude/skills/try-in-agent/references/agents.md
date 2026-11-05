@@ -25,23 +25,25 @@ Filter `npm notice` lines out of the output. Codex also warns about PATH aliases
 
 ## Installing the plugin
 
-**As published** (what users get), from the real marketplace:
+**As published** (what users get), from this repo, which is its own marketplace (`.claude-plugin/marketplace.json`, named `artberri-skills`):
 
 ```sh
-npx -y @openai/codex@latest plugin marketplace add artberri/claude-plugins
-npx -y @openai/codex@latest plugin add artberri@artberri
-npx -y @github/copilot@latest plugin marketplace add artberri/claude-plugins
-npx -y @github/copilot@latest plugin install artberri@artberri
+npx -y @openai/codex@latest plugin marketplace add artberri/skills
+npx -y @openai/codex@latest plugin add artberri-skills@artberri-skills
+npx -y @github/copilot@latest plugin marketplace add artberri/skills
+npx -y @github/copilot@latest plugin install artberri-skills@artberri-skills
 ```
 
-**With unpushed changes**, from a local marketplace: a folder with `.claude-plugin/marketplace.json` listing `{"name": "artberri", "source": "./plugin"}`, and a copy of the working tree in `plugin/` (`git ls-files -z | tar --null -T - -cf - | tar -xf - -C <folder>/plugin`, run from the repo root, copies the tracked files with their current edits; it works with both BSD and GNU tar). Add the folder's path as the marketplace. The two agents treat it differently:
+**With unpushed changes**, copy the working tree into a folder and add that folder as the marketplace: the copy lists itself, so the same `artberri-skills@artberri-skills` installs from it. From the repo root, `git ls-files -z --cached --others --exclude-standard | tar --null -T - -cf - | tar -xf - -C <folder>` copies the tracked files with their current edits, plus new files not yet added (a plain `git ls-files` misses those); it works with both BSD and GNU tar. The two agents treat the folder differently:
 
-- **Codex** copies the plugin into `$CODEX_HOME/plugins/cache/<marketplace>/artberri/<version>/`. After editing the copy, run `plugin add` again to re-copy it.
+- **Codex** copies the plugin into `$CODEX_HOME/plugins/cache/artberri-skills/artberri-skills/<version>/`. After editing the copy, run `plugin add` again to re-copy it.
 - **Copilot** loads a local folder live, without copying, so edits take effect in the next session.
 
 Neither accepts a `file://` or `git://` marketplace, so how updates arrive from a git marketplace can only be tested against GitHub.
 
-Where the installed copy lives, to read or patch it: `$CODEX_HOME/plugins/cache/artberri/artberri/local/` (Codex, from GitHub) and `$HOME/.copilot/installed-plugins/artberri/artberri/` (Copilot).
+`plugin add` (Codex) and `plugin install` (Copilot) print where the installed copy lives, to read or patch it.
+
+Claude Code can add the same folder too: `claude plugin marketplace add <folder>` with `CLAUDE_CONFIG_DIR` pointing at a throwaway folder, and with `CLAUDE_CODE_PLUGIN_DIRS` unset, or `plugin list` also shows the checkouts it names. Users of Claude Code install `artberri-skills@artberri` from `artberri/claude-plugins` instead.
 
 ## Probes that need no login
 
@@ -86,4 +88,4 @@ Codex doesn't run a plugin's hooks (tested with 0.166.0): `codex features list` 
 
 ## Updates
 
-Neither agent updated the plugin by itself when it started. By hand, `copilot plugin update artberri@artberri` and running `codex plugin add artberri@artberri` again both bring in the latest `main`. `codex plugin marketplace upgrade` only refreshes the marketplace repo, not the plugin.
+Neither agent updated the plugin by itself when it started. By hand, `copilot plugin update artberri-skills@artberri-skills` and running `codex plugin add artberri-skills@artberri-skills` again both bring in the latest `main`. `codex plugin marketplace upgrade` only refreshes the marketplace repo, not the plugin.

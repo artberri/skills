@@ -17,7 +17,7 @@ To try them in Claude Code:
 
 ```sh
 claude plugin marketplace add artberri/claude-plugins
-claude plugin install artberri@artberri
+claude plugin install artberri-skills@artberri
 ```
 
 [Installing](#installing-the-portable-skills-and-agents) covers Codex, Copilot CLI and other agents.
@@ -134,34 +134,34 @@ Some skills hand work to **agents** (subagents with their own prompt, tools and 
 
 ## Installing the portable skills and agents
 
-The repo is a plugin named `artberri` that ships the portable skills and agents. Templates and drafts are not part of it. Claude Code, Codex and GitHub Copilot CLI all install it from the [artberri marketplace](https://github.com/artberri/claude-plugins). A release reaches installs when the plugin's version changes, through each agent's update command below.
+The repo is a plugin named `artberri-skills` that ships the portable skills and agents. Templates and drafts are not part of it. Claude Code installs it from the [artberri marketplace](https://github.com/artberri/claude-plugins), which also lists my other Claude Code plugins. Codex and GitHub Copilot CLI install it from this repo, which is its own marketplace, also named `artberri-skills`. A release reaches installs when the plugin's version changes, through each agent's update command below.
 
 ### Claude Code
 
 ```sh
 claude plugin marketplace add artberri/claude-plugins
-claude plugin install artberri@artberri
+claude plugin install artberri-skills@artberri
 ```
 
-Update with `claude plugin update artberri@artberri`.
+Update with `claude plugin update artberri-skills@artberri`.
 
 ### Codex
 
 ```sh
-codex plugin marketplace add artberri/claude-plugins
-codex plugin add artberri@artberri
+codex plugin marketplace add artberri/skills
+codex plugin add artberri-skills@artberri-skills
 ```
 
-To update, run `codex plugin add artberri@artberri` again. (`codex plugin marketplace upgrade` only refreshes the marketplace list, not the plugin.)
+To update, run `codex plugin add artberri-skills@artberri-skills` again. (`codex plugin marketplace upgrade` only refreshes the marketplace, not the plugin.)
 
 ### GitHub Copilot CLI
 
 ```sh
-copilot plugin marketplace add artberri/claude-plugins
-copilot plugin install artberri@artberri
+copilot plugin marketplace add artberri/skills
+copilot plugin install artberri-skills@artberri-skills
 ```
 
-Update with `copilot plugin update artberri@artberri`.
+Update with `copilot plugin update artberri-skills@artberri-skills`.
 
 ### Others (Gemini CLI, Cursor, OpenCode...)
 
@@ -186,7 +186,7 @@ All three plugin installs load every portable skill. A few depend on the agent:
 
 The plugin also registers optional hooks, all off until you turn them on with an environment variable. One is [git-guardrails](./hooks/git-guardrails/README.md), which blocks the git commands the skills forbid: staging everything, force-pushing, and skipping signing or hooks.
 
-Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri:commit`. Agents always carry the prefix: `artberri:ocr-reviewer`.
+Plugin skills keep their short names (`/commit`) unless another plugin uses the same one; then use `/artberri-skills:commit`. Agents always carry the prefix: `artberri-skills:ocr-reviewer`.
 
 ### From a checkout (Claude Code)
 
@@ -215,7 +215,9 @@ It picks the skills folder the way `adapt-skill` does: the one the project alrea
 ## Layout
 
 ```
-.claude-plugin/plugin.json     the artberri plugin: portable skills and agents
+.claude-plugin/
+	plugin.json                  the artberri-skills plugin: portable skills and agents
+	marketplace.json             the artberri-skills marketplace, for Codex and Copilot CLI
 .claude/skills/                skills for working on this repo, never shipped
 skills/
 	portable/<skill>/SKILL.md    use as-is

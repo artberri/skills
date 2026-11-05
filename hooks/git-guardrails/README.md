@@ -17,7 +17,7 @@ It needs `jq`. Without it the hook does nothing. Run `test.sh` after changing `g
 
 ## Turning it on
 
-**From the `artberri` plugin:** the plugin registers the hook, but it stays off until `ARTBERRI_GIT_GUARDRAILS` is `1`. In Claude Code, set it in the `env` block of a `settings.json`: the project's `.claude/settings.json` for one repo, or your user settings for every repo. In Copilot CLI, export it in the shell you start `copilot` from.
+**From the `artberri-skills` plugin:** the plugin registers the hook, but it stays off until `ARTBERRI_GIT_GUARDRAILS` is `1`. In Claude Code, set it in the `env` block of a `settings.json`: the project's `.claude/settings.json` for one repo, or your user settings for every repo. In Copilot CLI, export it in the shell you start `copilot` from.
 
 ```json
 {

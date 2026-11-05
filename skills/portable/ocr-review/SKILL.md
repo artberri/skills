@@ -51,7 +51,7 @@ git rev-parse HEAD
 
 ## Step 2: Review in a fresh subagent
 
-The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent with your subagent tool (the Agent tool in Claude Code), with a fresh context. Use the name that tool lists for it: `ocr-reviewer`, or with a plugin prefix such as `artberri:ocr-reviewer` when it comes from a plugin. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
+The session that wrote the code believes it is right, and reviews it accordingly. Spawn the `ocr-reviewer` agent with your subagent tool (the Agent tool in Claude Code), with a fresh context. Use the name that tool lists for it: `ocr-reviewer`, or with a plugin prefix such as `artberri-skills:ocr-reviewer` when it comes from a plugin. It holds the review instructions and has no edit tools. Its prompt is only the inputs:
 
 ```text
 Review PR <number>: from <from>, to <to>, base <baseRefName>, mode <full | incremental>, in the repository at <repo root>.

@@ -302,6 +302,19 @@ else
 			fail "$manifest: what the plugin ships changed since $base, but version is still $version; bump it so installs update"
 		fi
 	fi
+
+	# Codex and Copilot CLI add this repo as a marketplace that lists the
+	# plugin at its root. artberri/claude-plugins lists it for Claude Code
+	# under the same name, which this script can't see.
+	marketplace=.claude-plugin/marketplace.json
+	plugin_name="$(jq -r '.name // ""' "$manifest")"
+	if ! jq -e . "$marketplace" >/dev/null 2>&1; then
+		fail "$marketplace is missing or not valid JSON"
+	elif ! jq -e --arg name "$plugin_name" \
+		'.plugins | length == 1 and .[0].name == $name and .[0].source == "./"' \
+		"$marketplace" >/dev/null; then
+		fail "$marketplace: list one plugin, named '$plugin_name' as in $manifest, with source \"./\""
+	fi
 fi
 
 # ocr-review, its agent and setup-ocr each run OCR through npx, pinned. A

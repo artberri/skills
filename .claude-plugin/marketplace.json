@@ -1,0 +1,14 @@
+{
+	"name": "artberri-skills",
+	"description": "Alberto Varela's agent skills, as a plugin for Claude Code, Codex and GitHub Copilot CLI.",
+	"owner": {
+		"name": "Alberto Varela Sánchez"
+	},
+	"plugins": [
+		{
+			"name": "artberri-skills",
+			"source": "./",
+			"description": "Alberto Varela's portable agent skills and agents: committing, PR review with Open Code Review, and adapting skill templates to a project."
+		}
+	]
+}
