@@ -15,3 +15,7 @@ Codex dropped plugin hooks, and we found out only by trying it in `try-in-agent`
 ## Add `argument-hint` to the skills that take arguments
 
 `ocr-review` (a PR number, `--local`, `--incremental`), `address-pr-comments` (a PR number or URL, `--local`), `retro` (`day`, `week`) and `ship` (`--base <branch>`) take arguments but have no `argument-hint`, so Claude Code's `/` menu doesn't show them. Six skills already have one, written as `argument-hint: "[...]"`.
+
+## Add the skills.sh badge to the README
+
+`[![skills.sh](https://skills.sh/b/artberri/skills)](https://skills.sh/artberri/skills)` under the title shows the install count. Right after the first install it said "resource not found", though the repo's page was up, so it came out. Put it back once `https://skills.sh/b/artberri/skills` shows a count.
