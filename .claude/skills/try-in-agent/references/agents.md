@@ -41,7 +41,7 @@ npx -y @github/copilot@latest plugin install artberri-skills@artberri-skills
 
 Neither accepts a `file://` or `git://` marketplace, so how updates arrive from a git marketplace can only be tested against GitHub.
 
-`plugin add` (Codex) and `plugin install` (Copilot) print where the installed copy lives, to read or patch it.
+Where the installed copy lives, to read or patch it: Codex prints it (`Installed plugin root:`), under `$CODEX_HOME/plugins/cache/artberri-skills/artberri-skills/<version>/`. Copilot prints only a success line, and keeps a GitHub install in `$HOME/.copilot/installed-plugins/artberri-skills/artberri-skills/`.
 
 Claude Code can add the same folder too: `claude plugin marketplace add <folder>` with `CLAUDE_CONFIG_DIR` pointing at a throwaway folder, and with `CLAUDE_CODE_PLUGIN_DIRS` unset, or `plugin list` also shows the checkouts it names. Users of Claude Code install `artberri-skills@artberri` from `artberri/claude-plugins` instead.
 
