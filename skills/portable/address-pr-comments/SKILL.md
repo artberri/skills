@@ -1,6 +1,7 @@
 ---
 name: address-pr-comments
 description: Address unresolved PR review comments end to end. Fetch every open thread and any findings left outside threads, evaluate each one (agree or disagree, with a reason), apply the agreed fixes, run the project's checks, commit and push, reply on disagreements, then resolve the threads. With `--local`, works through the findings a local OCR review (`ocr-review --local`) saved for the current branch instead, and commits without pushing. Use when the user says "address PR comments", "fix review feedback", "respond to the review", "resolve PR threads", "check PR comments", "address the local OCR findings", or shares a PR that has open review threads.
+argument-hint: "[pr-number | url] [--local]"
 ---
 
 # Address PR comments

@@ -1,6 +1,6 @@
 {
 	"name": "artberri-skills",
-	"version": "2.3.0",
+	"version": "2.3.1",
 	"description": "Alberto Varela's portable agent skills and agents: committing, PR review with Open Code Review, and adapting skill templates to a project.",
 	"author": {
 		"name": "Alberto Varela Sánchez"

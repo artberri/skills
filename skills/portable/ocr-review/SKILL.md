@@ -8,6 +8,7 @@ description: >-
   instead, for projects that push straight to the default branch. Use this skill when a hook or the deliver skill asks
   for it, when the user asks to "review the PR with OCR", "run the OCR review", "OCR review before I push" or
   "re-review the new commits", or invokes `/ocr-review` (optionally with a PR number, `--local` and `--incremental`).
+argument-hint: "[pr-number] [--local] [--incremental]"
 metadata:
   agents: ocr-reviewer
 ---

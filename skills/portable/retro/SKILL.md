@@ -1,6 +1,7 @@
 ---
 name: retro
 description: Retrospective analysis of this project's coding-agent sessions (Claude Code, Codex and GitHub Copilot CLI), to surface strategic insights, skill proposals, workflow improvements and recurring friction by reading past session transcripts. Two scopes, day (today's sessions) and week (last 7 days, the default), or a custom window. Use when the user asks for a retrospective, wants to review what happened this week, find cross-session patterns, propose new skills or workflow changes, or wants the big picture on how things are going. Trigger phrases include "retro", "retrospective", "what happened this week", "weekly retro", "any patterns", "review sessions", "how's the workflow going", "what should we change", "/retro", "/retro day", "/retro week".
+argument-hint: "[day | week]"
 ---
 
 # Retro

@@ -7,9 +7,10 @@ description: >-
   "get this reviewed", "it's ready for review", or invokes `/deliver` (optionally with `--base <branch>`). Reach for it
   the moment the user says a chunk of work is finished or ready for review, before looking at the changes yourself: it
   reads the state itself.
+argument-hint: "[--base <branch>]"
 metadata:
   internal: true
-  template-revision: "7"
+  template-revision: "8"
   former-names: ship
 ---
 
