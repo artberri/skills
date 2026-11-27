@@ -5,7 +5,7 @@ set -euo pipefail
 # grades them.
 #
 # Usage:
-#   scripts/evals/run.sh <skill> [--keep] [--no-grade] [eval-id...]
+#   scripts/evals/run.sh <skill> [--keep] [--no-grade] [--skill-dir <path>] [eval-id...]
 #   scripts/evals/run.sh <skill> --triggers [--keep]
 #
 # For each eval in <skill>/evals/evals.json, it:
@@ -30,7 +30,9 @@ set -euo pipefail
 # so its sibling skills compete for the query. A run stops at the first tool
 # call: the query triggered the skill if that call invokes it.
 #
-# --keep keeps the temporary folders for inspection. EVAL_MODEL and
+# --keep keeps the temporary folders for inspection. --skill-dir runs the
+# skill in that folder instead of this repo's copy, so compare.sh can grade
+# an older revision with this same script. EVAL_MODEL and
 # EVAL_GRADER_MODEL choose the models; EVAL_TRIGGER_RUNS (3) and
 # EVAL_TRIGGER_TIMEOUT (60 seconds) tune --triggers.
 #
@@ -59,12 +61,18 @@ shift
 keep=0
 grade=1
 triggers=0
+skill_dir_override=""
 ids=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--keep) keep=1 ;;
 	--no-grade) grade=0 ;;
 	--triggers) triggers=1 ;;
+	--skill-dir)
+		shift
+		[ $# -ge 1 ] || usage
+		skill_dir_override="$1"
+		;;
 	-h | --help) usage ;;
 	[0-9]*) ids="$ids $1" ;;
 	*) usage ;;
@@ -81,6 +89,10 @@ for b in portable templates drafts; do
 	fi
 done
 [ -n "$skill_dir" ] || die "no skill named '$skill'"
+if [ -n "$skill_dir_override" ]; then
+	[ -f "$skill_dir_override/SKILL.md" ] || die "--skill-dir has no SKILL.md: $skill_dir_override"
+	skill_dir="$(cd "$skill_dir_override" && pwd)"
+fi
 
 for tool in claude git jq; do
 	command -v "$tool" >/dev/null || die "$tool is needed"
@@ -143,11 +155,26 @@ prepare() {
 		git -C "$work" for-each-ref --format='%(objectname)' >"$start_refs"
 	fi
 
+	plugin_root="$repo"
+	# --skill-dir is a copy of the skill, usually inside an export of an
+	# older revision. Load that revision's plugin when the eval wants one,
+	# so the skill under test is the copy rather than this working tree.
+	if [ -n "$skill_dir_override" ] && [ "$with_plugin" = true ]; then
+		plugin_root="$(
+			if cd "$skill_dir/../../.." >/dev/null 2>&1; then
+				pwd
+			fi
+		)"
+		if [ -z "$plugin_root" ] || [ ! -f "$plugin_root/.claude-plugin/plugin.json" ]; then
+			plugin_root="$repo"
+		fi
+	fi
 	plugin_args=()
-	[ "$with_plugin" = true ] && plugin_args=(--plugin-dir "$repo")
+	[ "$with_plugin" = true ] && plugin_args=(--plugin-dir "$plugin_root")
 	# A portable skill comes with the plugin; anything else is installed into
-	# the project, as adapt-skill would, with the agents it uses.
-	if [ "$with_plugin" != true ] || [ "$bucket" != portable ]; then
+	# the project, as adapt-skill would, with the agents it uses. --skill-dir
+	# always installs that copy.
+	if [ -n "$skill_dir_override" ] || [ "$with_plugin" != true ] || [ "$bucket" != portable ]; then
 		mkdir -p "$work/.claude/skills"
 		cp -R "$skill_dir" "$work/.claude/skills/$skill"
 		rm -rf "$work/.claude/skills/$skill/evals" "$work/.claude/skills/$skill/SETUP.md"

@@ -97,6 +97,14 @@ scripts/evals/run.sh <skill> --triggers
 
 Each eval runs Claude Code in a throwaway repository with a temporary config folder, so it can't see your usual login: set `CLAUDE_CODE_OAUTH_TOKEN` (create one with `claude setup-token`) or `ANTHROPIC_API_KEY`. Runs cost model usage, so CI only validates the files; say in your pull request which evals you ran and how they did. Results go in `<skill>-workspace/`, which git ignores; delete it when you are done. The Evals section of AGENTS.md has the format.
 
+To see what a change did, compare the working tree with the skill as it was:
+
+```sh
+scripts/evals/compare.sh <skill> [--base <ref>] [eval-id...]
+```
+
+`<ref>` defaults to `origin/main`. It exports that revision, copies this tree's `evals.json` and fixtures onto that copy so both runs grade the same expectations, and runs both with `run.sh`. It prints each expectation as passed before, passed now, and gained, lost or unchanged, and exits non-zero if any expectation was lost. An expectation the old skill also passes doesn't test the change: tighten it or its fixture, or say what the evals don't show.
+
 ## Code style
 
 - Tabs for indentation, JSON included. Only YAML uses spaces.

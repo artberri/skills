@@ -123,7 +123,7 @@ Write expectations that can be checked against `outputs/git-state.txt` (branches
 
 Run them with `scripts/evals/run.sh <skill> [eval-id...]`, or `--triggers`. Each run uses a temporary config folder, so it needs `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or `ANTHROPIC_API_KEY`. Runs cost model usage, so CI only validates the files.
 
-To see what a change to a skill does, also run its evals against the skill as it was. Before editing, export the last commit with `git archive HEAD | tar -x -C <a scratch folder>`. Once the evals are written, copy `evals.json` and the fixtures into that copy and run its own `scripts/evals/run.sh`. An expectation the old skill also passes doesn't test the change: tighten it or its fixture, or say what the evals don't show. Keep the fixtures' scenarios out of the skill's examples, or the eval passes because the skill was handed the answer.
+To see what a change to a skill does, also run its evals against the skill as it was. `scripts/evals/compare.sh <skill>` does that against `origin/main` (or `--base <ref>`) and reports which expectations were gained or lost. By hand: export the revision with `git archive <ref> | tar -x -C <a scratch folder>`, copy `evals.json` and the fixtures into that copy, and run `scripts/evals/run.sh` on both. An expectation the old skill also passes doesn't test the change: tighten it or its fixture, or say what the evals don't show. Keep the fixtures' scenarios out of the skill's examples, or the eval passes because the skill was handed the answer.
 
 ## CUSTOMIZE markers
 
